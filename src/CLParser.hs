@@ -25,6 +25,7 @@ import Options.Applicative
     progDesc,
     str,
     hsubparser,
+    switch,
     subparser,
     prefs,
     showHelpOnEmpty,
@@ -37,7 +38,8 @@ data ScanAlgo = SPS | LDF
 
 data Opts = Opts
      { cmd :: !Command,
-       runType :: !RunType
+       runType :: !RunType,
+       noPowerList :: !Bool
      }
 -- Add more features here in the future
 data Command = Scan ScanAlgo Int 
@@ -47,7 +49,10 @@ parser = Opts <$> hsubparser scanCommand <*>
   flag Sequential Parallel
     (long "parallel"
     <> short 'p'
-    <> help "Run parallel version of the algorithm.") 
+    <> help "Run parallel version of the algorithm.")  <*>
+  switch
+    (long "no-powerlist"
+    <> help "Run base algorithm without powerlist")  
   where
       scanCommand :: Mod CommandFields Command
       scanCommand = command "scan" (info scanOptions (progDesc "Run Scan Algorithm"))
