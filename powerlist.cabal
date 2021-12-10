@@ -6,9 +6,9 @@ cabal-version: 1.12
 
 name:           powerlist
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/powerlist#readme>
-homepage:       https://github.com/githubuser/powerlist#readme
-bug-reports:    https://github.com/githubuser/powerlist/issues
+description:    Please see the README on GitHub at <https://github.com/saucam/powerlist#readme>
+homepage:       https://github.com/saucam/powerlist#readme
+bug-reports:    https://github.com/saucam/powerlist/issues
 author:         Yash Datta
 maintainer:     yd2590@columbia.edu
 copyright:      2021 Yash Datta
@@ -21,17 +21,20 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/powerlist
+  location: https://github.com/saucam/powerlist
 
 library
   exposed-modules:
+      CLParser
       Lib
+      Powerlist
   other-modules:
       Paths_powerlist
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
+    , optparse-applicative
   default-language: Haskell2010
 
 executable powerlist-exe
@@ -40,9 +43,10 @@ executable powerlist-exe
       Paths_powerlist
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       base >=4.7 && <5
+    , optparse-applicative
     , powerlist
   default-language: Haskell2010
 
@@ -56,5 +60,6 @@ test-suite powerlist-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , optparse-applicative
     , powerlist
   default-language: Haskell2010
