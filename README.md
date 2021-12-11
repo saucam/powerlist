@@ -19,7 +19,7 @@ Available options:
   -h,--help                Show this help text
 ```
 
-To run simple prefix sum algorithm on an array of size 5 in sequential mode:
+To run simple prefix sum algorithm on an array of size 2^5 in sequential mode:
 
 ```
 stack run -- scan --algo SPS --size 5
