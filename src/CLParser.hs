@@ -60,7 +60,7 @@ parser = Opts <$> hsubparser scanCommand <*>
       scanOptions =
           Scan
           <$> option scanAlgoReader (long "algo" <> short 'a' <> metavar "K" <> help "Supported Algos: SPS, LDF")
-          <*> option auto (long "size" <> short 's' <> metavar "R" <> help "Size of array on which to run scan")
+          <*> option auto (long "size" <> short 's' <> metavar "R" <> help "Size of array in terms of powers of 2 on which to run scan")
       scanAlgoReader :: ReadM ScanAlgo
       scanAlgoReader = eitherReader $ \arg ->
           case arg of

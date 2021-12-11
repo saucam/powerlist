@@ -13,4 +13,4 @@ run opts = case opts of
     Opts (Scan x n) Parallel False -> putStrLn "Run parallel scan with powerlist"
     -- Run sequential prefix sum without powerlist
     Opts (Scan x n) Sequential True -> putStrLn $ runSequentialSPS n
-    Opts (Scan x n) Sequential False -> putStrLn "Run sequential scan with powerlist"
+    Opts (Scan x n) Sequential False -> putStrLn $ runSPS n
