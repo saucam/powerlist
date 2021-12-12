@@ -23,6 +23,8 @@ dependencies:
 - base >= 4.7 && < 5
 - optparse-applicative
 - vector
+- parallel
+- deepseq
 
 library:
   source-dirs: src

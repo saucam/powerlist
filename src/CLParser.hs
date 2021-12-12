@@ -29,30 +29,20 @@ import Options.Applicative
     subparser,
     prefs,
     showHelpOnEmpty,
-    customExecParser
+    customExecParser,
+    value
   )
 
 data RunType = Sequential | Parallel
 
-data ScanAlgo = SPS | LDF
+data ScanAlgo = SPS | SPSPL | SPSPLPar1 | SPSPLPar2 | LDF | BLELLOCH
 
-data Opts = Opts
-     { cmd :: !Command,
-       runType :: !RunType,
-       noPowerList :: !Bool
-     }
+newtype Opts = Opts { cmd :: Command }
 -- Add more features here in the future
-data Command = Scan ScanAlgo Int 
+data Command = Scan ScanAlgo Int Int
 
 parser :: Parser Opts
-parser = Opts <$> hsubparser scanCommand <*>
-  flag Sequential Parallel
-    (long "parallel"
-    <> short 'p'
-    <> help "Run parallel version of the algorithm.")  <*>
-  switch
-    (long "no-powerlist"
-    <> help "Run base algorithm without powerlist")  
+parser = Opts <$> hsubparser scanCommand
   where
       scanCommand :: Mod CommandFields Command
       scanCommand = command "scan" (info scanOptions (progDesc "Run Scan Algorithm"))
@@ -61,10 +51,16 @@ parser = Opts <$> hsubparser scanCommand <*>
           Scan
           <$> option scanAlgoReader (long "algo" <> short 'a' <> metavar "K" <> help "Supported Algos: SPS, LDF")
           <*> option auto (long "size" <> short 's' <> metavar "R" <> help "Size of array in terms of powers of 2 on which to run scan")
+          <*> option auto (long "csize" <> short 'c' <> metavar "CHUNKSIZE" <> value 100 <> help "Size of chunks for parallelization")
       scanAlgoReader :: ReadM ScanAlgo
       scanAlgoReader = eitherReader $ \arg ->
           case arg of
               "SPS" -> Right(SPS)
+              "SPSPL" -> Right(SPSPL)
+              "BLELLOCH" -> Right(BLELLOCH)
+              "SPSPLPar1" -> Right(SPSPLPar1)
+              "SPSPLPar2" -> Right(SPSPLPar2)
+              --"SPSPLPar3" -> Right(SPSPLPar3)
               "LDF" -> Right(LDF)
               _ -> Left("Invalid Algo")
 
