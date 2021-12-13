@@ -73,28 +73,49 @@ runScan f inp = show $ sum $ f (+) $ generateList inp
 parZipWith :: Strategy c -> Int -> (a -> b -> c) -> [a] -> [b] -> [c]
 parZipWith strategy cs z as bs = Prelude.zipWith z as bs `using` parListChunk cs strategy
 
+odds [] = []
+odds [x] = [x]
+odds (x:y:xs) = x : odds xs
+
+evens [] = []
+evens [x] = []
+evens (x:y:xs) = y : evens xs
+
 parSps2 :: NFData a => Num a => (a -> a -> a) -> Int -> P.PowerList a -> P.PowerList a
 parSps2 _ _ [] = []
 parSps2 _ _ [x] = [x]
 parSps2 op cs l = runEval (do
-    (u, v) <- rseq $ P.unzip $ parZipWith rdeepseq cs op (0: l) l
+    k <- rseq $ parZipWith rdeepseq cs op (0: l) l
+    u <- rpar (odds k)
+    v <- rpar (evens k)
+    --(u, v) <- rseq $ P.unzip k
     u' <- rparWith rdeepseq (parSps2 op cs u)
     v' <- rparWith rdeepseq (parSps2 op cs v)
     r0 $ P.zip u' v')
     --r0 $ P.parZip rpar cs u' v')
 
-
-runParScan :: Int -> Int -> String
-runParScan cs inp = show $ sum $ parSps2 (+) cs $ generateList inp
-
 {-
-parSps3 _ [] = []
-parSps3 _ [x] = [x]
-parSps3 op l = runEval (do
-    (u, v) <- rseq $ P.unzip l
-    s <- rparWith rseq (parSps3 op $ parZipWith rdeepseq op u v)
-    return $ P.zip s (parZipWith rdeepseq op s u))
+  Parallel till certain depth, for arrays of size  <= 2^3, use sequentialSPS
 -}
+parSps3 :: NFData a => Num a => (a -> a -> a) -> Int -> Int -> P.PowerList a -> P.PowerList a
+parSps3 _ _ _ [] = []
+parSps3 _ _ _ [x] = [x]
+parSps3 op cs d l | d > 3 = runEval (do
+    k <- rseq $ parZipWith rdeepseq cs op (0: l) l
+    u <- rpar (odds k)
+    v <- rpar (evens k)
+    --(u, v) <- rseq $ P.unzip k
+    u' <- rparWith rdeepseq (parSps3 op cs (d-1) u)
+    v' <- rparWith rdeepseq (parSps3 op cs (d-1) v)
+    r0 $ P.zip u' v')
+parSps3 op cs d l = sequentialSPS op l
+
+runParScan2 :: Int -> Int -> String
+runParScan2 cs inp = show $ sum $ parSps2 (+) cs $ generateList inp
+
+runParScan3 :: Int -> Int -> String
+runParScan3 cs inp = show $ sum $ parSps3 (+) cs (inp - 4) $ generateList inp
+
 --------------------------------------------------------------------------------
 -- Ladner Fischer Algorithm
 --------------------------------------------------------------------------------
