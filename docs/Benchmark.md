@@ -43,6 +43,6 @@ sys	0m1.116s
 
 Load seems to be distributed evenly. There are GC pauses as expected as many intermediate lists are generated.
 
-|----------|----------|---------|--------------|---------------|
 |Array Size|Chunk Size|Num Cores|Time taken (s)|Threadscope Log|
-|2^20|100|8|0.644|(https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFPar20CS100.eventlog)|
+|----------|----------|---------|--------------|---------------|
+|2^20|100|8|0.644|[LDFPar20CS100.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFPar20CS100.eventlog)|
