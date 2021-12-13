@@ -111,10 +111,10 @@ runParScan2 :: Int -> Int -> String
 runParScan2 cs inp = show $ sum $ parSps2 (+) cs $ generateList inp
 
 runParScan3 :: Int -> Int -> String
-runParScan3 cs inp = show $ sum $ parSps3 (+) cs (inp - 3) $ generateList inp
+runParScan3 cs inp = show $ sum $ parSps3 (+) cs inp $ generateList inp
 
 runParLdf :: Int -> Int -> String
-runParLdf cs inp = show $ sum $ parLdf (+) cs (inp - 3) $ generateList inp
+runParLdf cs inp = show $ sum $ parLdf (+) cs inp $ generateList inp
 
 --------------------------------------------------------------------------------
 -- Ladner Fischer Algorithm
@@ -137,8 +137,8 @@ parLdf _ _ _ [x]       = [x]
 parLdf op cs d l | d > 3 = runEval (do
   p <- rpar (odds l)
   q <- rpar (evens l)
-  pq <- rseq (P.parZipWith rseq cs op p q)
-  t <- rparWith rdeepseq (parLdf op cs d pq)
+  pq <- rseq (P.parZipWith rdeepseq cs op p q)
+  t <- rparWith rdeepseq (parLdf op cs (d-1) pq)
   k <- r0 (P.parZipWith rdeepseq cs op (0: t) p)
   r0 $ P.zip k t)
 parLdf op cs d l = sequentialSPS op l
