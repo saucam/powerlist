@@ -7,6 +7,9 @@ The output from the algorithms is the sum of the prefix sum array. This is to ma
 
 ## Scan
 
+## Summary Table
+
+
 ### Sequential Prefix sum
 Simple prefix sum performs amazingly well on large arrays
 
@@ -24,7 +27,7 @@ recursion in an otherwise linear algorithm and generate a lot of intermediate li
 
 ### Parallel Prefix sum using Ladner Fisher algorithm (LDFPar)
 
-- Run for array of length 2^20, using chunk size 100
+1. Run for array of length 2^20, using chunk size 100, over 8 cores
 
 
 ```
@@ -38,4 +41,8 @@ sys	0m1.116s
 
 ![](LDFPar20CS100.png)
 
-Load seems to be distributed evenly. Expected GC times as many intermediate lists are generated.
+Load seems to be distributed evenly. There are GC pauses as expected as many intermediate lists are generated.
+
+|----------|----------|---------|--------------|---------------|
+|Array Size|Chunk Size|Num Cores|Time taken (s)|Threadscope Log|
+|2^20|100|8|0.644|(https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFPar20CS100.eventlog)|
