@@ -17,12 +17,13 @@ parZip :: Strategy a -> Int -> PowerList a -> PowerList a -> PowerList a
 parZip strategy cs as bs = Powerlist.zip as bs `using` parListChunk cs strategy
 
 unzip :: PowerList a -> (PowerList a, PowerList a)
---unzip = snd . foldr (\x (b, (xs, ys)) -> (not b, if b then (x:xs, ys) else (xs, x:ys))) (False, ([], []))
+unzip = snd . foldr (\x (b, (xs, ys)) -> (not b, if b then (x:xs, ys) else (xs, x:ys))) (False, ([], []))
+{-
 unzip = Prelude.unzip . splt
   where splt []       = []
         splt (x:y:xs) = (x, y) : splt xs
         splt _        = error "Malformed powerlist"
-
+-}
 -- Right shift and use zero
 rsh :: (a, PowerList a) -> PowerList a
 rsh (zero, xs) = zero : init xs

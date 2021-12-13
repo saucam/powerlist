@@ -77,7 +77,7 @@ parSps2 :: NFData a => Num a => (a -> a -> a) -> Int -> P.PowerList a -> P.Power
 parSps2 _ _ [] = []
 parSps2 _ _ [x] = [x]
 parSps2 op cs l = runEval (do
-    (u, v) <- rseq $ P.unzip $ parZipWith rdeepseq cs op (P.rsh (0, l)) l
+    (u, v) <- rseq $ P.unzip $ parZipWith rdeepseq cs op (0: l) l
     u' <- rparWith rdeepseq (parSps2 op cs u)
     v' <- rparWith rdeepseq (parSps2 op cs v)
     r0 $ P.zip u' v')
