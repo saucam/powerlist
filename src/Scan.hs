@@ -1,6 +1,7 @@
 module Scan where
 
 import qualified Powerlist as P
+import qualified VecPowerlist as VP
 import Control.Parallel.Strategies
     ( parBuffer,
       parList,
@@ -17,7 +18,7 @@ import Control.Parallel.Strategies
       Strategy )
 import Control.DeepSeq ( force, NFData )
 
--- import qualified Data.Vector.Unboxed as V
+import qualified Data.Vector.Unboxed as V
 -- import Data.Vector.Fusion.Bundle (inplace)
 
 split :: Int -> [a] -> [[a]]
@@ -116,6 +117,11 @@ runParScan3 cs inp = show $ sum $ parSps3 (+) cs inp $ generateList inp
 runParLdf :: Int -> Int -> String
 runParLdf cs inp = show $ sum $ parLdf (+) cs inp $ generateList inp
 
+runParSpsVec :: Int -> Int -> String
+runParSpsVec cs inp = show $ V.sum $ parSpsVec (+) cs inp $ V.generate (2^inp) (+1)
+
+runParLdfVec :: Int -> Int -> String
+runParLdfVec cs inp = show $ V.sum $ parLdfVec (+) cs inp $ V.generate (2^inp) (+1)
 --------------------------------------------------------------------------------
 -- Ladner Fischer Algorithm
 --------------------------------------------------------------------------------
@@ -143,3 +149,27 @@ parLdf op cs d l | d > 3 = runEval (do
   r0 $ P.zip k t)
 parLdf op cs d l = sequentialSPS op l
 
+--------------------------------------------------------------------------------
+-- SPS and LDF using powerlist vector implementation
+--------------------------------------------------------------------------------
+parSpsVec :: (NFData a, V.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> VP.PowerList a -> VP.PowerList a
+parSpsVec op cs d l | V.length l <= 1 = l
+parSpsVec op cs d l | d > 3 = runEval (do
+    k <- rseq $ VP.shiftAdd l
+    u <- rpar (V.ifilter (\i a -> odd i) k)
+    v <- rpar (V.ifilter (\i a -> even i) k)
+    u' <- rparWith rdeepseq (parSpsVec op cs (d-1) u)
+    v' <- rparWith rdeepseq (parSpsVec op cs (d-1) v)
+    r0 $ VP.zip u' v')
+parSpsVec op cs d l = V.scanl1 (+) l
+
+parLdfVec :: (NFData a, V.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> VP.PowerList a -> VP.PowerList a
+parLdfVec op cs d l | V.length l <= 1 = l
+parLdfVec op cs d l | d > 3 = runEval (do
+    p <- rpar (V.ifilter (\i a -> even i) l)
+    q <- rpar (V.ifilter (\i a -> odd i) l)
+    pq <- r0 (VP.parZipWith rdeepseq op p q)
+    t <- rparWith rdeepseq (parLdfVec op cs (d-1) pq)
+    k <- r0 $ VP.shiftAdd2 t p
+    r0 $ VP.zip k t)
+parLdfVec op cs d l = V.scanl1 (+) l

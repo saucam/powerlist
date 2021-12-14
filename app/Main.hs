@@ -22,3 +22,6 @@ run opts = case opts of
     Opts (Scan SPS n _) -> putStrLn $ runScan sequentialSPS n
     -- Run sequential prefix sum with powerlist
     Opts (Scan SPSPL n _) -> putStrLn $ runScan sps n
+    -- Run parallel prefix sum using vecpowerlist
+    Opts (Scan SPSVecPLPar n cs) -> putStrLn $ runParSpsVec cs n
+    Opts (Scan LDFVecPLPar n cs) -> putStrLn $ runParLdfVec cs n
