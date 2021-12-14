@@ -54,4 +54,8 @@ To run the more optimized parallel version, and supply chunk size for splitting 
 stack run -- scan --algo SPSPLPar2 --size 20 --csize 100
 ```
 
+### Benchmarks
+
+Find the [benchmarks here](docs/Benchmark.md)
+
 
