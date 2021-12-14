@@ -1,6 +1,12 @@
+{-# LANGUAGE TypeOperators #-}
+
 module Scan where
 
 import qualified Powerlist as P
+import qualified RepaPowerlist as RP
+import qualified Data.Array.Repa as R
+import Data.Array.Repa.Repr.Unboxed
+
 import Control.Parallel.Strategies
     ( parBuffer,
       parList,
@@ -19,6 +25,8 @@ import Control.DeepSeq ( force, NFData )
 
 -- import qualified Data.Vector.Unboxed as V
 -- import Data.Vector.Fusion.Bundle (inplace)
+modNum :: Int
+modNum = (10 ^ 9) + 7
 
 split :: Int -> [a] -> [[a]]
 split numChunks xs = chunk (length xs `quot` numChunks) xs
@@ -107,14 +115,18 @@ parSps3 op cs d l | d > 3 = runEval (do
     r0 $ P.zip u' v')
 parSps3 op cs d l = sequentialSPS op l
 
+-- Modulo sum
+modSum :: Int -> [Int] -> Int
+modSum m = foldl (\a c -> (c + a) `mod` m) 0
+
 runParScan2 :: Int -> Int -> String
-runParScan2 cs inp = show $ sum $ parSps2 (+) cs $ generateList inp
+runParScan2 cs inp = show $ modSum modNum $ parSps2 (+) cs $ generateList inp
 
 runParScan3 :: Int -> Int -> String
-runParScan3 cs inp = show $ sum $ parSps3 (+) cs inp $ generateList inp
+runParScan3 cs inp = show $ modSum modNum $ parSps3 (+) cs inp $ generateList inp
 
 runParLdf :: Int -> Int -> String
-runParLdf cs inp = show $ sum $ parLdf (+) cs inp $ generateList inp
+runParLdf cs inp = show $ modSum modNum $ parLdf (+) cs inp $ generateList inp
 
 --------------------------------------------------------------------------------
 -- Ladner Fischer Algorithm
@@ -143,3 +155,16 @@ parLdf op cs d l | d > 3 = runEval (do
   r0 $ P.zip k t)
 parLdf op cs d l = sequentialSPS op l
 
+-----------------------------------------------------------------
+-----------------------------------------------------------------
+--repaSps :: Num a => (a -> a -> a) -> RP.PowerList a -> RP.PowerList a
+--repaSps _ [] = []
+--repaSps _ [x] = [x]
+repaSps d op l | d > 1 = RP.zip (repSps (d-1) op u) (repaSps (d-1) op v)
+  where k = RP.zipWith op l l
+        u = odds k
+        v = evens k
+repaSps d op l = l
+
+runRepaScan :: Int -> Int -> String
+runRepaScan cs inp = show $ modSum modNum $ repaSps inp (+) $ (Data.Array.Repa.Repr.Unboxed.fromListUnboxed (R.Z R.:.(2^inp)) $ generateList inp) :: R.Array R.U (R.Z R.:. Int) Int
