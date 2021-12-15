@@ -1,7 +1,7 @@
 module Scan where
 
 import qualified Powerlist as P
-import qualified VecPowerlist as VP
+import qualified UBVecPowerlist as UVP
 import Control.Parallel.Strategies
     ( parBuffer,
       parList,
@@ -150,26 +150,28 @@ parLdf op cs d l | d > 3 = runEval (do
 parLdf op cs d l = sequentialSPS op l
 
 --------------------------------------------------------------------------------
--- SPS and LDF using powerlist vector implementation
+-- SPS and LDF using powerlist unboxed vector implementation
 --------------------------------------------------------------------------------
-parSpsVec :: (NFData a, V.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> VP.PowerList a -> VP.PowerList a
+parSpsVec :: (NFData a, V.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
 parSpsVec op cs d l | V.length l <= 1 = l
 parSpsVec op cs d l | d > 3 = runEval (do
-    k <- rseq $ VP.shiftAdd l
+    k <- rseq $ UVP.shiftAdd l
     u <- rpar (V.ifilter (\i a -> odd i) k)
     v <- rpar (V.ifilter (\i a -> even i) k)
-    u' <- rparWith rdeepseq (parSpsVec op cs (d-1) u)
-    v' <- rparWith rdeepseq (parSpsVec op cs (d-1) v)
-    r0 $ VP.zip u' v')
+    u' <- rpar (parSpsVec op cs (d-1) u)
+    v' <- rpar (parSpsVec op cs (d-1) v)
+    r0 $ UVP.zip u' v')
 parSpsVec op cs d l = V.scanl1 (+) l
 
-parLdfVec :: (NFData a, V.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> VP.PowerList a -> VP.PowerList a
+-- Minimal parallelism as unbox vectors cannot be split
+parLdfVec :: (NFData a, V.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
 parLdfVec op cs d l | V.length l <= 1 = l
-parLdfVec op cs d l | d > 3 = runEval (do
+parLdfVec op cs d l | d > 4 = runEval (do
     p <- rpar (V.ifilter (\i a -> even i) l)
     q <- rpar (V.ifilter (\i a -> odd i) l)
-    pq <- r0 (VP.parZipWith rdeepseq op p q)
+--    pq <- rparWith rdeepseq $ UVP.addPairs l
+    pq <- rseq $ UVP.zipWith op p q
     t <- rparWith rdeepseq (parLdfVec op cs (d-1) pq)
-    k <- r0 $ VP.shiftAdd2 t p
-    r0 $ VP.zip k t)
+    k <- rseq $ UVP.shiftAdd2 t p
+    r0 $ UVP.zip k t)
 parLdfVec op cs d l = V.scanl1 (+) l

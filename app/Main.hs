@@ -25,3 +25,6 @@ run opts = case opts of
     -- Run parallel prefix sum using vecpowerlist
     Opts (Scan SPSVecPLPar n cs) -> putStrLn $ runParSpsVec cs n
     Opts (Scan LDFVecPLPar n cs) -> putStrLn $ runParLdfVec cs n
+    -- Run parallel prefix sum using unboxed vecpowerlist
+    Opts (Scan SPSUBVecPLPar n cs) -> putStrLn $ runParSpsVec cs n
+    Opts (Scan LDFUBVecPLPar n cs) -> putStrLn $ runParLdfVec cs n

@@ -35,7 +35,7 @@ import Options.Applicative
 
 data RunType = Sequential | Parallel
 
-data ScanAlgo = SPS | SPSPL | SPSPLPar1 | SPSPLPar2 | SPSPLPar3 | LDF | LDFPar | BLELLOCH | SPSVecPLPar | LDFVecPLPar
+data ScanAlgo = SPS | SPSPL | SPSPLPar1 | SPSPLPar2 | SPSPLPar3 | LDF | LDFPar | BLELLOCH | SPSVecPLPar | LDFVecPLPar | SPSUBVecPLPar | LDFUBVecPLPar
 
 newtype Opts = Opts { cmd :: Command }
 -- Add more features here in the future
@@ -63,6 +63,8 @@ parser = Opts <$> hsubparser scanCommand
               "SPSPLPar3" -> Right(SPSPLPar3)
               "LDF" -> Right(LDF)
               "LDFPar" -> Right(LDFPar)
+              "SPSUBVecPLPar" -> Right(SPSUBVecPLPar)
+              "LDFUBVecPLPar" -> Right(LDFUBVecPLPar)
               "SPSVecPLPar" -> Right(SPSVecPLPar)
               "LDFVecPLPar" -> Right(LDFVecPLPar)
               _ -> Left("Invalid Algo")

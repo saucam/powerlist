@@ -1,8 +1,10 @@
-module VecPowerlist where
+module UBVecPowerlist where
 
 import Control.Parallel.Strategies
-import qualified Data.Vector.Unboxed as V
+
+import qualified Data.Vector.Unboxed         as V
 import qualified Data.Vector.Unboxed.Mutable as M
+import qualified Data.Vector.Split           as S
 
 -- Using simple list here as it would be most performant
 type PowerList a = V.Vector a
@@ -13,12 +15,12 @@ tie = (V.++)
 
 zip ::  V.Unbox a => PowerList a -> PowerList a -> PowerList a
 {-# INLINE zip #-}
-zip xs ys = V.generate (V.length xs + V.length ys) (\i -> if odd i then xs V.! (i `div` 2) else ys V.! (i `div` 2))
+zip xs ys = V.generate (V.length xs + V.length ys) (\i -> if even i then xs V.! (i `div` 2) else ys V.! (i `div` 2))
 --zip _ _ = error "Non similar powerlists"
 
 parZip ::  V.Unbox a => Strategy (PowerList a) -> PowerList a -> PowerList a -> PowerList a
 {-# INLINE parZip #-}
-parZip strategy as bs = VecPowerlist.zip as bs `using` strategy
+parZip strategy as bs = UBVecPowerlist.zip as bs `using` strategy
 
 zipWith :: (Num a, V.Unbox a) => (a -> a -> a) -> PowerList a -> PowerList a -> PowerList a
 {-# INLINE zipWith #-}
@@ -26,7 +28,7 @@ zipWith = V.zipWith
 
 parZipWith :: (Num a,  V.Unbox a) => Strategy (PowerList a) -> (a -> a -> a) -> PowerList a -> PowerList a -> PowerList a
 {-# INLINE parZipWith #-}
-parZipWith strategy z as bs = VecPowerlist.zipWith z as bs `using` strategy
+parZipWith strategy z as bs = UBVecPowerlist.zipWith z as bs `using` strategy
 
 unzip ::  V.Unbox a => PowerList a -> (PowerList a, PowerList a) 
 unzip k = (b, c)
@@ -62,3 +64,16 @@ shiftAdd2 r l = V.create $ do
               M.unsafeWrite l id ((r V.! (id - 1)) + curr)
               go (id-1) l
             | otherwise = return ()
+
+addPairs :: (V.Unbox a, Num a) => PowerList a -> PowerList a
+addPairs l = V.create $ do
+  m <- M.new n
+  addPairs' l m 0
+  return m
+  where
+    n = V.length l `div` 2
+    addPairs' l m i
+             | i < n = do
+               M.unsafeWrite m i (l V.! (2*i) + (l V.! (2*i + 1)))
+               addPairs' l m (i+1)
+             | otherwise = return ()  

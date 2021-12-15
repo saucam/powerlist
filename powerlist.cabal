@@ -29,7 +29,7 @@ library
       Lib
       Powerlist
       Scan
-      VecPowerlist
+      UBVecPowerlist
   other-modules:
       Paths_powerlist
   hs-source-dirs:
