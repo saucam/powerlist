@@ -1,7 +1,5 @@
 module Scan where
 
-import qualified Powerlist as P
-import qualified UBVecPowerlist as UVP
 import Control.Parallel.Strategies
     ( parBuffer,
       parList,
@@ -18,7 +16,12 @@ import Control.Parallel.Strategies
       Strategy )
 import Control.DeepSeq ( force, NFData )
 
-import qualified Data.Vector.Unboxed as V
+import qualified Data.Vector.Unboxed         as UV
+import qualified Data.Vector                 as V
+import qualified Data.Vector.Split           as S
+import qualified Data.Vector.Unboxed.Mutable as M
+import qualified Powerlist                   as P
+import qualified UBVecPowerlist              as UVP
 -- import Data.Vector.Fusion.Bundle (inplace)
 
 split :: Int -> [a] -> [[a]]
@@ -98,7 +101,7 @@ parSps2 op cs l = runEval (do
 parSps3 :: NFData a => Num a => (a -> a -> a) -> Int -> Int -> P.PowerList a -> P.PowerList a
 parSps3 _ _ _ [] = []
 parSps3 _ _ _ [x] = [x]
-parSps3 op cs d l | d > 3 = runEval (do
+parSps3 op cs d l | d > 4 = runEval (do
     k <- rseq $ P.parZipWith rdeepseq cs op (0: l) l
     u <- rpar (odds k)
     v <- rpar (evens k)
@@ -118,10 +121,13 @@ runParLdf :: Int -> Int -> String
 runParLdf cs inp = show $ sum $ parLdf (+) cs inp $ generateList inp
 
 runParSpsVec :: Int -> Int -> String
-runParSpsVec cs inp = show $ V.sum $ parSpsVec (+) cs inp $ V.generate (2^inp) (+1)
+runParSpsVec cs inp = show $ UV.sum $ parSpsVec (+) cs inp $ UV.generate (2^inp) (+1)
 
 runParLdfVec :: Int -> Int -> String
-runParLdfVec cs inp = show $ V.sum $ parLdfVec (+) cs inp $ V.generate (2^inp) (+1)
+runParLdfVec cs inp = show $ UV.sum $ parLdfVec (+) inp $ UV.generate (2^inp) (+1)
+
+runParLdfChunkVec :: Int -> Int -> String
+runParLdfChunkVec cs inp = show $ UV.sum $ parLdfChunkVec (+) cs inp $ UV.generate (2^inp) (+1)
 --------------------------------------------------------------------------------
 -- Ladner Fischer Algorithm
 --------------------------------------------------------------------------------
@@ -140,7 +146,7 @@ ldf op l         = P.zip (P.zipWith op (P.rsh 0 t) p) t
 parLdf :: NFData a => Num a => (a -> a -> a) -> Int -> Int -> P.PowerList a -> P.PowerList a
 parLdf _ _ _ []        = []
 parLdf _ _ _ [x]       = [x]
-parLdf op cs d l | d > 3 = runEval (do
+parLdf op cs d l | d > 4 = runEval (do
   p <- rpar (odds l)
   q <- rpar (evens l)
   pq <- rseq (P.parZipWith rdeepseq cs op p q)
@@ -152,26 +158,67 @@ parLdf op cs d l = sequentialSPS op l
 --------------------------------------------------------------------------------
 -- SPS and LDF using powerlist unboxed vector implementation
 --------------------------------------------------------------------------------
-parSpsVec :: (NFData a, V.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
-parSpsVec op cs d l | V.length l <= 1 = l
-parSpsVec op cs d l | d > 3 = runEval (do
+parSpsVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
+parSpsVec op cs d l | UV.length l <= 1 = l
+parSpsVec op cs d l | d > 4 = runEval (do
     k <- rseq $ UVP.shiftAdd l
-    u <- rpar (V.ifilter (\i a -> odd i) k)
-    v <- rpar (V.ifilter (\i a -> even i) k)
+    u <- rpar (UV.ifilter (\i a -> odd i) k)
+    v <- rpar (UV.ifilter (\i a -> even i) k)
     u' <- rpar (parSpsVec op cs (d-1) u)
     v' <- rpar (parSpsVec op cs (d-1) v)
     r0 $ UVP.zip u' v')
-parSpsVec op cs d l = V.scanl1 (+) l
+parSpsVec op cs d l = UV.scanl1 (+) l
 
 -- Minimal parallelism as unbox vectors cannot be split
-parLdfVec :: (NFData a, V.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
-parLdfVec op cs d l | V.length l <= 1 = l
-parLdfVec op cs d l | d > 4 = runEval (do
-    p <- rpar (V.ifilter (\i a -> even i) l)
-    q <- rpar (V.ifilter (\i a -> odd i) l)
+parLdfVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> UVP.PowerList a -> UVP.PowerList a
+parLdfVec op d l | UV.length l <= 1 = l
+parLdfVec op d l | d > 4 = runEval (do
+    p <- rpar (UV.ifilter (\i a -> even i) l)
+    q <- rpar (UV.ifilter (\i a -> odd i) l)
 --    pq <- rparWith rdeepseq $ UVP.addPairs l
     pq <- rseq $ UVP.zipWith op p q
-    t <- rparWith rdeepseq (parLdfVec op cs (d-1) pq)
+    t <- rparWith rdeepseq (parLdfVec op (d-1) pq)
     k <- rseq $ UVP.shiftAdd2 t p
     r0 $ UVP.zip k t)
-parLdfVec op cs d l = V.scanl1 (+) l
+parLdfVec op d l = UV.scanl1 (+) l
+
+
+-- Minimal parallelism as unbox vectors cannot be split, try chunked approach
+parLdfChunkVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
+parLdfChunkVec op cs d l | UV.length l <= 1 = l
+parLdfChunkVec op cs d l = runEval $ parLdfChunkVec' op chunks  
+    where
+        n = UV.length l
+        chunkSize = 2^cs
+        chunks = S.chunksOf chunkSize l
+        numChunks = n `div` chunkSize
+        parLdfChunkVec' :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> [UVP.PowerList a] -> Eval (UVP.PowerList a)
+        parLdfChunkVec' op [] = return UV.empty
+        parLdfChunkVec' op chunks = do
+            resChunks <- parList rdeepseq (parLdfVec op cs <$> chunks)
+            res <- rdeepseq $ UV.concat resChunks
+            -- get last element of each block
+            lastelems <- parList rdeepseq (UV.last <$> chunks)
+            lastScan <- rpar (UV.fromList $ sequentialSPS op lastelems)
+            rpar $ UV.create $ do
+                m <- UV.thaw res
+                mergeChunks (n-1) (UV.tail $ UV.reverse lastScan) m
+                return m
+                where mergeChunks i lastScan m
+                       | i > 0 = do
+                            let ad = UV.head lastScan
+                            let start = i
+                            go m chunkSize start ad 0
+                            mergeChunks (i-chunkSize) (UV.tail lastScan) m
+                       | otherwise = return ()
+          
+go m chunkSize start v id
+    | id <= chunkSize = do
+      curr <- M.unsafeRead m (start - id)
+      M.unsafeWrite m (start - id) (curr + v)
+      go m chunkSize start v (id+1)
+    | otherwise = return ()
+
+--------------------------------------------------------------------------------
+-- Use Boxed vectors
+--------------------------------------------------------------------------------

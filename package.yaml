@@ -24,6 +24,7 @@ dependencies:
 - optparse-applicative
 - vector
 - vector-split
+- vector-strategies
 - parallel
 - deepseq
 
