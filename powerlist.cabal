@@ -29,6 +29,7 @@ library
       Lib
       Powerlist
       Scan
+      Sort
       UBVecPowerlist
       VecPowerlist
   other-modules:

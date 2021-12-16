@@ -3,6 +3,7 @@ module Main where
 import CLParser
 import Lib
 import Scan
+import Sort
 
 main :: IO ()
 main = run =<< parseArgs
@@ -22,10 +23,10 @@ run opts = case opts of
     Opts (Scan SPS n _) -> putStrLn $ runScan sequentialSPS n
     -- Run sequential prefix sum with powerlist
     Opts (Scan SPSPL n _) -> putStrLn $ runScan sps n
-    -- Run parallel prefix sum using vecpowerlist
-    Opts (Scan SPSVecPLPar n cs) -> putStrLn $ runParSpsVec cs n
-    Opts (Scan LDFVecPLPar n cs) -> putStrLn $ runParLdfVec cs n
     -- Run parallel prefix sum using unboxed vecpowerlist
-    Opts (Scan SPSUBVecPLPar n cs) -> putStrLn $ runParSpsVec cs n
-    Opts (Scan LDFUBVecPLPar n cs) -> putStrLn $ runParLdfVec cs n
-    Opts (Scan LDFChunkUBVecPLPar n cs) -> putStrLn $ runParLdfChunkVec cs n
+    Opts (Scan SPSUBVecPLPar n cs) -> putStrLn $ runParSpsUBVec cs n
+    Opts (Scan LDFUBVecPLPar n cs) -> putStrLn $ runParLdfUBVec cs n
+    Opts (Scan LDFChunkUBVecPLPar n cs) -> putStrLn $ runParLdfChunkUBVec cs n
+    -- Run sort
+    Opts (Sort DEFAULT n cs) -> putStrLn $ runDefaultSort cs n
+    Opts (Sort BATCHER n cs) -> putStrLn $ runBatcherSort cs n

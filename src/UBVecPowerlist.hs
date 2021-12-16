@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module UBVecPowerlist where
 
 import Control.Parallel.Strategies
@@ -13,22 +14,63 @@ tie :: V.Unbox a => PowerList a -> PowerList a -> PowerList a
 {-# INLINE tie #-}
 tie = (V.++)
 
-zip ::  V.Unbox a => PowerList a -> PowerList a -> PowerList a
+zip ::  (V.Unbox a, Num a) => PowerList a -> PowerList a -> PowerList a
 {-# INLINE zip #-}
-zip xs ys = V.generate (V.length xs + V.length ys) (\i -> if even i then xs V.! (i `div` 2) else ys V.! (i `div` 2))
+--zip xs ys = V.generate (V.length xs + V.length ys) (\i -> if even i then xs V.! (i `div` 2) else ys V.! (i `div` 2))
 --zip _ _ = error "Non similar powerlists"
 
-parZip ::  V.Unbox a => Strategy (PowerList a) -> PowerList a -> PowerList a -> PowerList a
+zip xs ys = V.create $ do
+  m <- M.new n
+  write m 0
+  return m
+  where
+    n = V.length xs + V.length ys
+    write m i
+         | i < n = do
+           M.unsafeWrite m i (xs V.! (i `div` 2))
+           M.unsafeWrite m (i+1) (ys V.! (i `div` 2))
+           write m (i+2)
+         | otherwise = return ()
+
+parZip ::  (V.Unbox a, Num a) => Strategy (PowerList a) -> Int -> PowerList a -> PowerList a -> Eval (PowerList a)
 {-# INLINE parZip #-}
-parZip strategy as bs = UBVecPowerlist.zip as bs `using` strategy
+parZip strategy cs as bs = do
+              let inp = Prelude.zip ac bc
+              lists <- parList strategy (writePar <$> inp)
+              return $ V.concat lists
+              where
+                 ac = S.chunksOf cs as
+                 bc = S.chunksOf cs bs
+                 numChunks = V.length as `div` cs
+                 writePar (a, b) = UBVecPowerlist.zip a b
+
 
 zipWith :: (Num a, V.Unbox a) => (a -> a -> a) -> PowerList a -> PowerList a -> PowerList a
 {-# INLINE zipWith #-}
-zipWith = V.zipWith
+zipWith op xs ys = V.create $ do
+  m <- V.thaw xs
+  write m ys 0
+  return m
+  where
+    k = V.length xs
+    write m ys i
+         | i < k = do
+           curr <- M.unsafeRead m i
+           M.unsafeWrite m i (op (ys V.! i) curr)
+           write m ys (i+1)
+         | otherwise = return ()
 
-parZipWith :: (Num a,  V.Unbox a) => Strategy (PowerList a) -> (a -> a -> a) -> PowerList a -> PowerList a -> PowerList a
+parZipWith :: (Num a,  V.Unbox a) => Strategy (PowerList a) -> (a -> a -> a) -> Int -> PowerList a -> PowerList a -> Eval (PowerList a)
 {-# INLINE parZipWith #-}
-parZipWith strategy z as bs = UBVecPowerlist.zipWith z as bs `using` strategy
+parZipWith strategy op cs as bs = do
+              let inp = Prelude.zip ac bc
+              lists <- parList strategy (writePar <$> inp)
+              return $ V.concat lists
+              where
+                 ac = S.chunksOf cs as
+                 bc = S.chunksOf cs bs
+                 numChunks = V.length as `div` cs
+                 writePar (a, b) = UBVecPowerlist.zipWith op a b
 
 unzip ::  V.Unbox a => PowerList a -> (PowerList a, PowerList a) 
 unzip k = (b, c)
@@ -76,4 +118,32 @@ addPairs l = V.create $ do
              | i < n = do
                M.unsafeWrite m i (l V.! (2*i) + (l V.! (2*i + 1)))
                addPairs' l m (i+1)
-             | otherwise = return ()  
+             | otherwise = return ()
+
+minMaxZip ::  (V.Unbox a, Ord a) => PowerList a -> PowerList a -> PowerList a
+minMaxZip xs ys = V.create $ do
+  m <- M.new n
+  write m 0
+  return m
+  where
+    n = V.length xs + V.length ys
+    write m i
+         | i < n = do
+           let p = xs V.! (i `div` 2)
+           let q = ys V.! (i `div` 2)
+           M.unsafeWrite m i (p `min` q)
+           M.unsafeWrite m (i+1) (p `max` q)
+           write m (i+2)
+         | otherwise = return ()
+
+parMinMaxZip ::  (V.Unbox a, Ord a) => Strategy (PowerList a) -> Int -> PowerList a -> PowerList a -> Eval (PowerList a)
+{-# INLINE parMinMaxZip #-}
+parMinMaxZip strategy cs as bs = do
+              let inp = Prelude.zip ac bc
+              lists <- parList strategy (writePar <$> inp)
+              return $ V.concat lists
+              where
+                 ac = S.chunksOf cs as
+                 bc = S.chunksOf cs bs
+                 numChunks = V.length as `div` cs
+                 writePar (a, b) = UBVecPowerlist.minMaxZip a b

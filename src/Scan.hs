@@ -22,6 +22,7 @@ import qualified Data.Vector.Split           as S
 import qualified Data.Vector.Unboxed.Mutable as M
 import qualified Powerlist                   as P
 import qualified UBVecPowerlist              as UVP
+
 -- import Data.Vector.Fusion.Bundle (inplace)
 
 split :: Int -> [a] -> [[a]]
@@ -120,14 +121,15 @@ runParScan3 cs inp = show $ sum $ parSps3 (+) cs inp $ generateList inp
 runParLdf :: Int -> Int -> String
 runParLdf cs inp = show $ sum $ parLdf (+) cs inp $ generateList inp
 
-runParSpsVec :: Int -> Int -> String
-runParSpsVec cs inp = show $ UV.sum $ parSpsVec (+) cs inp $ UV.generate (2^inp) (+1)
+runParSpsUBVec :: Int -> Int -> String
+runParSpsUBVec cs inp = show $ UV.sum $ parSpsUBVec (+) cs inp $ UV.generate (2^inp) (+1)
 
-runParLdfVec :: Int -> Int -> String
-runParLdfVec cs inp = show $ UV.sum $ parLdfVec (+) inp $ UV.generate (2^inp) (+1)
+runParLdfUBVec :: Int -> Int -> String
+runParLdfUBVec cs inp = show $ UV.sum $ parLdfUBVec (+) cs inp $ UV.generate (2^inp) (+1)
 
-runParLdfChunkVec :: Int -> Int -> String
-runParLdfChunkVec cs inp = show $ UV.sum $ parLdfChunkVec (+) cs inp $ UV.generate (2^inp) (+1)
+runParLdfChunkUBVec :: Int -> Int -> String
+runParLdfChunkUBVec cs inp = show $ UV.sum $ parLdfChunkUBVec (+) cs inp $ UV.generate (2^inp) (+1)
+
 --------------------------------------------------------------------------------
 -- Ladner Fischer Algorithm
 --------------------------------------------------------------------------------
@@ -158,35 +160,34 @@ parLdf op cs d l = sequentialSPS op l
 --------------------------------------------------------------------------------
 -- SPS and LDF using powerlist unboxed vector implementation
 --------------------------------------------------------------------------------
-parSpsVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
-parSpsVec op cs d l | UV.length l <= 1 = l
-parSpsVec op cs d l | d > 4 = runEval (do
+parSpsUBVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
+parSpsUBVec op cs d l | UV.length l <= 1 = l
+parSpsUBVec op cs d l | d > 4 = runEval (do
     k <- rseq $ UVP.shiftAdd l
     u <- rpar (UV.ifilter (\i a -> odd i) k)
     v <- rpar (UV.ifilter (\i a -> even i) k)
-    u' <- rpar (parSpsVec op cs (d-1) u)
-    v' <- rpar (parSpsVec op cs (d-1) v)
+    u' <- rpar (parSpsUBVec op cs (d-1) u)
+    v' <- rpar (parSpsUBVec op cs (d-1) v)
     r0 $ UVP.zip u' v')
-parSpsVec op cs d l = UV.scanl1 (+) l
+parSpsUBVec op cs d l = UV.scanl1 (+) l
 
--- Minimal parallelism as unbox vectors cannot be split
-parLdfVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> UVP.PowerList a -> UVP.PowerList a
-parLdfVec op d l | UV.length l <= 1 = l
-parLdfVec op d l | d > 4 = runEval (do
+parLdfUBVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
+parLdfUBVec op cs d l | UV.length l <= 1 = l
+parLdfUBVec op cs d l | d > 4 = runEval (do
     p <- rpar (UV.ifilter (\i a -> even i) l)
     q <- rpar (UV.ifilter (\i a -> odd i) l)
---    pq <- rparWith rdeepseq $ UVP.addPairs l
-    pq <- rseq $ UVP.zipWith op p q
-    t <- rparWith rdeepseq (parLdfVec op (d-1) pq)
+    pq <- UVP.parZipWith (rparWith rdeepseq) op cs p q
+    t <- rparWith rdeepseq (parLdfUBVec op cs (d-1) pq)
     k <- rseq $ UVP.shiftAdd2 t p
-    r0 $ UVP.zip k t)
-parLdfVec op d l = UV.scanl1 (+) l
+    res <- UVP.parZip (rparWith rdeepseq) cs k t
+    r0 res)
+parLdfUBVec op cs d l = UV.scanl1 (+) l
 
 
--- Minimal parallelism as unbox vectors cannot be split, try chunked approach
-parLdfChunkVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
-parLdfChunkVec op cs d l | UV.length l <= 1 = l
-parLdfChunkVec op cs d l = runEval $ parLdfChunkVec' op chunks  
+-- Try chunked approach
+parLdfChunkUBVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
+parLdfChunkUBVec op cs d l | UV.length l <= 1 = l
+parLdfChunkUBVec op cs d l = runEval $ parLdfChunkVec' op chunks  
     where
         n = UV.length l
         chunkSize = 2^cs
@@ -195,12 +196,12 @@ parLdfChunkVec op cs d l = runEval $ parLdfChunkVec' op chunks
         parLdfChunkVec' :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> [UVP.PowerList a] -> Eval (UVP.PowerList a)
         parLdfChunkVec' op [] = return UV.empty
         parLdfChunkVec' op chunks = do
-            resChunks <- parList rdeepseq (parLdfVec op cs <$> chunks)
+            resChunks <- parList rdeepseq (parLdfUBVec op cs d <$> chunks)
             res <- rdeepseq $ UV.concat resChunks
             -- get last element of each block
-            lastelems <- parList rdeepseq (UV.last <$> chunks)
+            lastelems <- parList rdeepseq (UV.last <$> resChunks)
             lastScan <- rpar (UV.fromList $ sequentialSPS op lastelems)
-            rpar $ UV.create $ do
+            rseq $ UV.create $ do
                 m <- UV.thaw res
                 mergeChunks (n-1) (UV.tail $ UV.reverse lastScan) m
                 return m
@@ -218,7 +219,3 @@ go m chunkSize start v id
       M.unsafeWrite m (start - id) (curr + v)
       go m chunkSize start v (id+1)
     | otherwise = return ()
-
---------------------------------------------------------------------------------
--- Use Boxed vectors
---------------------------------------------------------------------------------

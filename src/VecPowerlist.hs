@@ -19,17 +19,17 @@ zip :: PowerList a -> PowerList a -> PowerList a
 zip xs ys = V.generate (V.length xs + V.length ys) (\i -> if even i then xs V.! (i `div` 2) else ys V.! (i `div` 2))
 --zip _ _ = error "Non similar powerlists"
 
-parZip :: Strategy (PowerList a) -> Int -> PowerList a -> PowerList a -> PowerList a
-{-# INLINE parZip #-}
-parZip strategy cs as bs = VecPowerlist.zip as bs `using` (parVector cs strategy)
+--parZip :: NFData a => Strategy (PowerList a) -> Int -> PowerList a -> PowerList a -> Strategy (PowerList a)
+--{-# INLINE parZip #-}
+--parZip strategy cs as bs = 
 
 zipWith :: Num a => (a -> a -> a) -> PowerList a -> PowerList a -> PowerList a
 {-# INLINE zipWith #-}
 zipWith = V.zipWith
 
-parZipWith :: Num a => Strategy (PowerList a) -> Int -> (a -> a -> a) -> PowerList a -> PowerList a -> PowerList a
+parZipWith :: (Num a, NFData a) => Strategy (PowerList a) -> Int -> (a -> a -> a) -> PowerList a -> PowerList a -> PowerList a
 {-# INLINE parZipWith #-}
-parZipWith strategy cs z as bs = VecPowerlist.zipWith z as bs `using` (parVector cs strategy)
+parZipWith strategy cs z as bs = VecPowerlist.zipWith z as bs `using` (parVector cs)
 
 unzip :: PowerList a -> (PowerList a, PowerList a) 
 unzip k = (b, c)
