@@ -16,7 +16,7 @@ import qualified Data.Vector.Unboxed         as V
 
 baseConfig :: Config
 baseConfig = defaultConfig {
-            resamples = 10
+            resamples = 20
         }
 
 setUpEnv :: IO (V.Vector Int, [Int], V.Vector Int, [Int])

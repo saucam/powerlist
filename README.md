@@ -9,6 +9,7 @@ Read on for the list of supported algorithms.
 We support many different algorithms of the following problems for benchmark and comparison.
 
 - Prefix Sum (Scan)
+- Sort
 
 #### Scan algorithms
 Following scan algorithms are supported:
@@ -17,6 +18,13 @@ Following scan algorithms are supported:
 - ```SPSPL``` : A sequential prefix sum using powerlist, to demonstrate equivalence.
 - ```SPSPLPar1```: A parallel implementation of ```SPSPL```, with the Eval Monad.
 - ```SPSPLPar2```: More optimized parallel implementation of ```SPSPL```, with the Eval Monad.
+- ```SPSPLPar3```: Only evaluate in parallel till certain depth, then fall back to scanl1
+
+#### Sort algorithms
+Following sort algorithms are supported:
+
+- ```DEFAULT``` : This is the default sort implementation in haskell
+- ```BATCHER``` : This is the batcher merge sort implementation using powerlists.
 
 ### Running via stack
 
