@@ -15,7 +15,7 @@ import Control.Parallel.Strategies
       Eval,
       Strategy )
 import Control.DeepSeq ( force, NFData )
-import Utils ( generateList )
+import Utils ( generateList, generateUVec )
 
 import qualified Data.Vector.Unboxed         as UV
 import qualified Data.Vector                 as V
@@ -115,13 +115,13 @@ runParLdf :: Int -> Int -> String
 runParLdf cs inp = show $ sum $ parLdf (+) cs inp $ generateList inp
 
 runParSpsUBVec :: Int -> Int -> String
-runParSpsUBVec cs inp = show $ UV.sum $ parSpsUBVec (+) cs inp $ UV.generate (2^inp) (+1)
+runParSpsUBVec cs inp = show $ UV.sum $ parSpsUBVec (+) cs inp $ generateUVec inp
 
 runParLdfUBVec :: Int -> Int -> String
-runParLdfUBVec cs inp = show $ UV.sum $ parLdfUBVec (+) cs inp $ UV.generate (2^inp) (+1)
+runParLdfUBVec cs inp = show $ UV.sum $ parLdfUBVec (+) cs inp $ generateUVec inp
 
-runParLdfChunkUBVec :: Int -> Int -> String
-runParLdfChunkUBVec cs inp = show $ UV.sum $ parLdfChunkUBVec (+) cs inp $ UV.generate (2^inp) (+1)
+--runParLdfChunkUBVec :: Int -> Int -> String
+--runParLdfChunkUBVec cs inp = show $ UV.sum $ parLdfChunkUBVec (+) cs inp $ generateUVec inp
 
 --------------------------------------------------------------------------------
 -- Ladner Fischer Algorithm
@@ -178,7 +178,7 @@ parLdfUBVec op cs d l | d > 4 = runEval (do
 parLdfUBVec op cs d l = UV.scanl1 (+) l
 
 
--- Try chunked approach
+{-- Try chunked approach
 parLdfChunkUBVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
 parLdfChunkUBVec op cs d l | UV.length l <= 1 = l
 parLdfChunkUBVec op cs d l = runEval $ parLdfChunkVec' op chunks  
@@ -213,3 +213,4 @@ go m chunkSize start v id
       M.unsafeWrite m (start - id) (curr + v)
       go m chunkSize start v (id+1)
     | otherwise = return ()
+-}

@@ -27,6 +27,7 @@ dependencies:
 - vector-strategies
 - parallel
 - deepseq
+- criterion
 
 library:
   source-dirs: src
@@ -39,6 +40,18 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N1
+    - -eventlog
+    - -O2
+    - -Wall
+    dependencies:
+    - powerlist
+  powerlist-bench:
+    main:                Main.hs
+    source-dirs:         bench
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N8
     - -eventlog
     - -O2
     - -Wall

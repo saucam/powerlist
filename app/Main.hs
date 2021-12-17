@@ -9,7 +9,6 @@ main = run =<< parseArgs
 
 run :: Opts -> IO ()
 run opts = case opts of
-    Opts (Scan BLELLOCH n _) -> putStrLn "Run parallel scan without powerlist"
     -- Run parallel prefix sum with powerlist
     Opts (Scan SPSPLPar1 n _) -> putStrLn $ runScan parSps1 n
     Opts (Scan SPSPLPar2 n c) -> putStrLn $ runParScan2 c n
@@ -25,7 +24,8 @@ run opts = case opts of
     -- Run parallel prefix sum using unboxed vecpowerlist
     Opts (Scan SPSUBVecPLPar n cs) -> putStrLn $ runParSpsUBVec cs n
     Opts (Scan LDFUBVecPLPar n cs) -> putStrLn $ runParLdfUBVec cs n
-    Opts (Scan LDFChunkUBVecPLPar n cs) -> putStrLn $ runParLdfChunkUBVec cs n
+    -- Opts (Scan LDFChunkUBVecPLPar n cs) -> putStrLn $ runParLdfChunkUBVec cs n
     -- Run sort
     Opts (Sort DEFAULT n cs) -> putStrLn $ runDefaultSort cs n
     Opts (Sort BATCHER n cs) -> putStrLn $ runBatcherSort cs n
+    Opts Scan {} -> putStrLn "Scan algorithm currently not supported"

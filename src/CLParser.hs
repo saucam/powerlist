@@ -35,7 +35,7 @@ import Options.Applicative
 
 data RunType = Sequential | Parallel
 
-data ScanAlgo = SPS | SPSPL | SPSPLPar1 | SPSPLPar2 | SPSPLPar3 | LDF | LDFPar | BLELLOCH | SPSUBVecPLPar | LDFUBVecPLPar | LDFChunkUBVecPLPar
+data ScanAlgo = SPS | SPSPL | SPSPLPar1 | SPSPLPar2 | SPSPLPar3 | LDF | LDFPar | SPSUBVecPLPar | LDFUBVecPLPar | LDFChunkUBVecPLPar
 data SortAlgo = DEFAULT | BATCHER
 
 newtype Opts = Opts { cmd :: Command }
@@ -72,7 +72,6 @@ parser = Opts <$> hsubparser (scanCommand <> sortCommand)
           case arg of
               "SPS" -> Right(SPS)
               "SPSPL" -> Right(SPSPL)
-              "BLELLOCH" -> Right(BLELLOCH)
               "SPSPLPar1" -> Right(SPSPLPar1)
               "SPSPLPar2" -> Right(SPSPLPar2)
               "SPSPLPar3" -> Right(SPSPLPar3)

@@ -17,44 +17,70 @@ import Control.Parallel.Strategies
       Strategy, unEval )
 import Control.DeepSeq ( force, NFData )
 import Data.List (sort)
-import Utils ( generateList )
+import Utils ( generateReverseList )
 
 import qualified Data.Vector.Unboxed         as V
 import qualified UBVecPowerlist              as P
 import qualified Data.Vector.Unboxed.Mutable as M
 
 runDefaultSort :: Int -> Int -> String
-runDefaultSort cs inp = show $ last $ defaultSort $ generateList inp
+runDefaultSort cs inp = show $ last $ defaultSort $ generateReverseList inp
 
 runBatcherSort :: Int -> Int -> String
-runBatcherSort cs inp = show $ V.last $ batcherMergeSort inp $ V.generate (2^inp) (\i -> 2^inp - i)
+runBatcherSort cs inp = show $ V.last $ parBatcherMergeSort inp $ V.generate (2^inp) (\i -> 2^inp - i)
 
 defaultSort :: Ord a => [a] -> [a]
 defaultSort = sort
 
-batcherMergeSort :: (NFData a, Ord a, V.Unbox a) => Int -> P.PowerList a -> P.PowerList a
-batcherMergeSort _ l | V.length l <= 1 = l
-batcherMergeSort d  l | d > 5 = runEval(do
+--------------------------------------------------------------------------------
+-- Sequential Impl
+--------------------------------------------------------------------------------
+batcherMergeSort :: (Ord a, V.Unbox a) => P.PowerList a -> P.PowerList a
+batcherMergeSort l | V.length l <= 1 = l
+batcherMergeSort l = sortp `batcherMerge` sortq
+    where sortp = batcherMergeSort p
+          sortq = batcherMergeSort q
+          p     = P.filterOdd l
+          q     = P.filterEven l
+
+batcherMerge :: (Ord a, V.Unbox a) => P.PowerList a -> P.PowerList a -> P.PowerList a
+batcherMerge x y | V.length x == 1 = V.fromList [hx `min` hy, hx `max` hy]
+    where hx = V.head x
+          hy = V.head y
+batcherMerge x y = P.minMaxZip rv su
+    where rv = r `batcherMerge` v
+          su = s `batcherMerge` s
+          r  = P.filterOdd x
+          v  = P.filterEven y
+          s  = P.filterEven x
+          u  = P.filterOdd y
+
+--------------------------------------------------------------------------------
+-- Parallel Impl
+--------------------------------------------------------------------------------
+parBatcherMergeSort :: (NFData a, Ord a, V.Unbox a) => Int -> P.PowerList a -> P.PowerList a
+parBatcherMergeSort _ l | V.length l <= 1 = l
+parBatcherMergeSort d  l | d > 5 = runEval(do
     p <- rseq $ P.filterOdd l
     q <- rseq $ P.filterEven l
-    sortp <- rparWith rdeepseq (batcherMergeSort (d-1) p)
-    sortq <- rparWith rdeepseq (batcherMergeSort (d-1) q)
-    batcherMerge d sortp sortq)
-batcherMergeSort d l = V.fromList $ defaultSort $ V.toList l
+    sortp <- rparWith rdeepseq (parBatcherMergeSort (d-1) p)
+    sortq <- rparWith rdeepseq (parBatcherMergeSort (d-1) q)
+    parBatcherMerge d sortp sortq)
+parBatcherMergeSort d l = V.fromList $ defaultSort $ V.toList l
 
-batcherMerge :: (Ord a, V.Unbox a) => Int -> P.PowerList a -> P.PowerList a -> Eval (P.PowerList a)
+parBatcherMerge :: (Ord a, V.Unbox a) => Int -> P.PowerList a -> P.PowerList a -> Eval (P.PowerList a)
 --batcherMerge strategy d cs x y | V.length x == 1 = rseq $ V.fromList [hx `min` hy, hx `max` hy]
 --    where hx = V.head x
 --          hy = V.head y
-batcherMerge d x y | d > 6 = do
+parBatcherMerge d x y | d > 6 = do
     r <- rseq $ P.filterOdd x
     s <- rseq $ P.filterEven x
     u <- rseq $ P.filterOdd  y
     v <- rseq $ P.filterEven y
-    rv <- batcherMerge (d-1) r v
-    su <- batcherMerge (d-1) s u
+    rv <- parBatcherMerge (d-1) r v
+    su <- parBatcherMerge (d-1) s u
     rparWith rdeepseq $ P.minMaxZip rv su
-batcherMerge d x y = r0 (merge x y)
+parBatcherMerge d x y = r0 (merge x y)
 
 merge :: (Ord a, V.Unbox a) => P.PowerList a -> P.PowerList a -> P.PowerList a
 merge a b = V.create $ do
