@@ -1,7 +1,6 @@
 module Main where
 
 import CLParser
-import Lib
 import Scan
 import Sort
 

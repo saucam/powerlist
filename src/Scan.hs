@@ -15,6 +15,7 @@ import Control.Parallel.Strategies
       Eval,
       Strategy )
 import Control.DeepSeq ( force, NFData )
+import Utils ( generateList )
 
 import qualified Data.Vector.Unboxed         as UV
 import qualified Data.Vector                 as V
@@ -22,8 +23,6 @@ import qualified Data.Vector.Split           as S
 import qualified Data.Vector.Unboxed.Mutable as M
 import qualified Powerlist                   as P
 import qualified UBVecPowerlist              as UVP
-
--- import Data.Vector.Fusion.Bundle (inplace)
 
 split :: Int -> [a] -> [[a]]
 split numChunks xs = chunk (length xs `quot` numChunks) xs
@@ -38,12 +37,6 @@ chunk n xs = as : chunk n bs
 
 -- sequentialSPS :: V.Vector Int -> V.Vector Int
 -- sequentialSPS = V.scanl1 (+)
-
-{-
-  Generates a list from 1 to 2^n
--}
-generateList :: Int -> [Int]
-generateList n = [1..2^n]
 
 --------------------------------------------------------------------------------
 -- Sequential SPS is nothing but haskel's scanl1
@@ -174,13 +167,14 @@ parSpsUBVec op cs d l = UV.scanl1 (+) l
 parLdfUBVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
 parLdfUBVec op cs d l | UV.length l <= 1 = l
 parLdfUBVec op cs d l | d > 4 = runEval (do
-    p <- rpar (UV.ifilter (\i a -> even i) l)
-    q <- rpar (UV.ifilter (\i a -> odd i) l)
+--    p <- rpar (UV.ifilter (\i a -> even i) l)
+--    q <- rpar (UV.ifilter (\i a -> odd i) l)
+    p <- rseq $ UVP.filterOdd l
+    q <- rseq $ UVP.filterEven l
     pq <- UVP.parZipWith (rparWith rdeepseq) op cs p q
-    t <- rparWith rdeepseq (parLdfUBVec op cs (d-1) pq)
+    t <- rpar (parLdfUBVec op cs (d-1) pq)
     k <- rseq $ UVP.shiftAdd2 t p
-    res <- UVP.parZip (rparWith rdeepseq) cs k t
-    r0 res)
+    UVP.parZip (rparWith rdeepseq) cs k t)
 parLdfUBVec op cs d l = UV.scanl1 (+) l
 
 

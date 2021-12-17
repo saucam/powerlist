@@ -77,6 +77,31 @@ unzip k = (b, c)
   where b = V.ifilter (\i a -> even i) k
         c = V.ifilter (\i a -> odd i) k
 
+filterUsing ::  V.Unbox a => (Int -> Int) -> PowerList a -> PowerList a
+filterUsing op l = V.create $ do
+  m <- M.new n
+  write m 0
+  return m
+  where
+    nl = V.length l
+    n = nl `div` 2
+    write m i
+        | i < n = do
+          M.unsafeWrite m i (l V.! op i)
+          write m (i+1)
+        | otherwise = return ()
+
+calculateEvenInd :: Int -> Int
+calculateEvenInd  = (* 2)
+calculateOddInd :: Num a => a -> a
+calculateOddInd i = (i * 2) + 1
+
+filterOdd :: V.Unbox a => PowerList a -> PowerList a
+filterOdd = filterUsing calculateEvenInd
+
+filterEven :: V.Unbox a => PowerList a -> PowerList a
+filterEven = filterUsing calculateOddInd
+
 -- Right shift and use zero, does not perform well as cons is O(n)
 rsh ::  V.Unbox a => a -> PowerList a -> PowerList a
 {-# INLINE rsh #-}

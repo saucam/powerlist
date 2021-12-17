@@ -19,10 +19,6 @@ zip :: PowerList a -> PowerList a -> PowerList a
 zip xs ys = V.generate (V.length xs + V.length ys) (\i -> if even i then xs V.! (i `div` 2) else ys V.! (i `div` 2))
 --zip _ _ = error "Non similar powerlists"
 
---parZip :: NFData a => Strategy (PowerList a) -> Int -> PowerList a -> PowerList a -> Strategy (PowerList a)
---{-# INLINE parZip #-}
---parZip strategy cs as bs = 
-
 zipWith :: Num a => (a -> a -> a) -> PowerList a -> PowerList a -> PowerList a
 {-# INLINE zipWith #-}
 zipWith = V.zipWith
