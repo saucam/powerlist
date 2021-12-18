@@ -9,7 +9,7 @@ import Utils
 import Criterion.Main ( defaultMainWith, bench, defaultConfig, nf, bgroup, env )
 import Criterion.Types ( Config(resamples) )
 import Control.DeepSeq (force)
-import Scan ( ldf, sps, sequentialSPS, parLdfUBVec, parSpsUBVec )
+import Scan ( ldf, sps, sequentialSPS, parLdfUBVec, parSpsUBVec, parLdfChunkUBVec )
 import Sort ( parBatcherMergeSort, defaultSort )
 
 import qualified Data.Vector.Unboxed         as V
@@ -32,6 +32,27 @@ main = defaultMainWith baseConfig [
             env setUpEnv $ \ ~(scanInpUV, scanInpL, sortInpUV, sortInpL) -> bgroup "main" [
                 bgroup "scan" [
                   bgroup "par" [
+                    bgroup "4" [
+                      bench "LDFChunkUBVecPLPar" $ nf (parLdfChunkUBVec (+) 4) scanInpUV
+                    ],
+                    bgroup "5" [
+                      bench "LDFChunkUBVecPLPar" $ nf (parLdfChunkUBVec (+) 5) scanInpUV
+                    ],
+                    bgroup "6" [
+                      bench "LDFChunkUBVecPLPar" $ nf (parLdfChunkUBVec (+) 6) scanInpUV
+                    ],
+                    bgroup "7" [
+                      bench "LDFChunkUBVecPLPar" $ nf (parLdfChunkUBVec (+) 7) scanInpUV
+                    ],
+                    bgroup "8" [
+                      bench "LDFChunkUBVecPLPar" $ nf (parLdfChunkUBVec (+) 8) scanInpUV
+                    ],
+                    bgroup "9" [
+                      bench "LDFChunkUBVecPLPar" $ nf (parLdfChunkUBVec (+) 9) scanInpUV
+                    ],
+                    bgroup "10" [
+                      bench "LDFChunkUBVecPLPar" $ nf (parLdfChunkUBVec (+) 10) scanInpUV
+                    ],                    
                     bgroup "128" [
                       bench "LDFUBVecPLPar" $ nf (parLdfUBVec (+) 128 20) scanInpUV, 
                       bench "SPSUBVecPLPar" $ nf (parSpsUBVec (+) 128 20) scanInpUV

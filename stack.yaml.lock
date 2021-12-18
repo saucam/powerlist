@@ -3,14 +3,7 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages:
-- completed:
-    hackage: vector-strategies-0.4@sha256:896406a1ec4cefbfe513f376afd90cc343d11a7a4b757079d0c9b1a9dd823796,1732
-    pantry-tree:
-      size: 226
-      sha256: c2d69b78b71f2e7b33dc227d9eef2ccf5010233f8a136297fd85c6676d473fa1
-  original:
-    hackage: vector-strategies-0.4
+packages: []
 snapshots:
 - completed:
     size: 586296

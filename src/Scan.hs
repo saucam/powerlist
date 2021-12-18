@@ -71,7 +71,7 @@ parSps2 op cs l = runEval (do
     --r0 $ P.parZip rpar cs u' v')
 
 {-
-  Parallel till certain depth, for arrays of size  <= 2^3, use sequentialSPS
+  Parallel till certain depth, for arrays of size  <= 2^4, use sequentialSPS
 -}
 parSps3 :: NFData a => Num a => (a -> a -> a) -> Int -> Int -> P.PowerList a -> P.PowerList a
 parSps3 _ _ _ [] = []

@@ -44,8 +44,7 @@ packages:
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
-extra-deps:
-  - vector-strategies-0.4
+
 # Extra package databases containing global packages
 # extra-package-dbs: []
 

@@ -94,6 +94,7 @@ test-suite powerlist-test
       base >=4.7 && <5
     , criterion
     , deepseq
+    , hspec
     , optparse-applicative
     , parallel
     , powerlist
