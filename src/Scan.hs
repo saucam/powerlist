@@ -190,11 +190,12 @@ parLdfChunkUBVec ops cs l = runEval $ parLdfChunkVec' ops chunks
         parLdfChunkVec' op vChunks = do
             resChunks <- parList rseq (parLdfUBVecNC op cs <$> vChunks)
             res <- rseq $ UV.concat resChunks
-            -- get last element of each block
+            -- Get last element of each block
             lastelems <- parList rdeepseq (UV.last <$> resChunks)
             lastScan <- rseq (UV.fromList $ sequentialSPS op lastelems)
             rseq $ UV.create $ do
                 m <- UV.thaw res
+                -- Not sure how to parallelise here!
                 mergeChunks (n-1) (UV.tail $ UV.reverse lastScan) m
                 return m
         mergeChunks i lastScan m
