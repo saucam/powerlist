@@ -5,16 +5,50 @@
 
 packages:
 - completed:
-    hackage: vector-strategies-0.4@sha256:896406a1ec4cefbfe513f376afd90cc343d11a7a4b757079d0c9b1a9dd823796,1732
+    hackage: accelerate-llvm-1.0.0.0@sha256:7d9096dc7ec1f5aae9acfc4d9faf652682dbf81026c9c743200487e057297bd4,7651
     pantry-tree:
-      size: 226
-      sha256: c2d69b78b71f2e7b33dc227d9eef2ccf5010233f8a136297fd85c6676d473fa1
+      size: 4224
+      sha256: 566a8f3a6df219c26f96471056c12f99d5864ad67a74c80a45ba9ef047aee38f
   original:
-    hackage: vector-strategies-0.4
+    hackage: accelerate-llvm-1.0.0.0
+- completed:
+    hackage: accelerate-llvm-native-1.0.0.0@sha256:c4aae18f571e0d9dd36674fe24672dcba29ec3a1891247dae5bd6d602fc5538d,6040
+    pantry-tree:
+      size: 2299
+      sha256: c543000eb5169edcb1e132de4d533fc56a1d7738a10e513ed8dcc6182ee82ddd
+  original:
+    hackage: accelerate-llvm-native-1.0.0.0
+- completed:
+    hackage: accelerate-llvm-ptx-1.0.0.0@sha256:e68701f15336fd1d744649487cd1a834d111673d2919d181fe810da5623797fb,7006
+    pantry-tree:
+      size: 3124
+      sha256: c03fc3c197ed273e09015b5fc7220d7d09d13b8e466633acffca9f872550888b
+  original:
+    hackage: accelerate-llvm-ptx-1.0.0.0
+- completed:
+    hackage: cuda-0.7.5.3@sha256:5ee0fc541925a4b86d7f4807ee70bc83fe798af989c1ec3d39cec312a9bd65e9,5903
+    pantry-tree:
+      size: 3414
+      sha256: 25fd0da6a6976d8af9e94a8450ac663c7234171591268ce901fe12e9b1520aa7
+  original:
+    hackage: cuda-0.7.5.3
+- completed:
+    hackage: llvm-hs-4.0.1.0@sha256:fa9814094209663f1c67934beeefcbd41e71029158da1ba3245ae36995179561,8577
+    pantry-tree:
+      size: 11680
+      sha256: 213734232110394fc5af8e78b9c5df2d0bbda3e2ddbd264fa3a08a19e574dc12
+  original:
+    hackage: llvm-hs-4.0.1.0
+- completed:
+    hackage: llvm-hs-pure-4.0.0.0@sha256:fee90cff04e936c466c53d89d12501eec586cfeceb339c1fd7f7e7c6b9db5619,3001
+    pantry-tree:
+      size: 2045
+      sha256: 0d8d2f2cabf8f9401d656057965f65d27d94e6e8489d1b6e84f6fa62f1215521
+  original:
+    hackage: llvm-hs-pure-4.0.0.0
 snapshots:
 - completed:
-    size: 586296
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/18.yaml
-    sha256: 63539429076b7ebbab6daa7656cfb079393bf644971156dc349d7c0453694ac2
-  original:
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/18.yaml
+    size: 533451
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/9/0.yaml
+    sha256: 27f29b231b39ea68e967a7a4346b2693a49d77c50f41fc0c276e11189a538da7
+  original: lts-9.0

@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       CLParser
+      GPUScan
       Powerlist
       Scan
       Sort

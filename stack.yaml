@@ -17,8 +17,8 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver:
-  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/18.yaml
+resolver: lts-9.0
+
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -45,7 +45,15 @@ packages:
 # Override default flag values for local packages and extra-deps
 # flags: {}
 extra-deps:
-  - vector-strategies-0.4
+- 'accelerate-llvm-1.0.0.0'
+- 'accelerate-llvm-native-1.0.0.0'
+- 'accelerate-llvm-ptx-1.0.0.0'
+- 'cuda-0.7.5.3'
+- 'llvm-hs-4.0.1.0'
+- 'llvm-hs-pure-4.0.0.0'
+flags:
+  llvm-hs:
+    shared-llvm: true
 # Extra package databases containing global packages
 # extra-package-dbs: []
 
