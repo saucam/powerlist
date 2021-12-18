@@ -134,11 +134,14 @@ parSpsUBVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> U
 parSpsUBVec _ _ _ l | UV.length l <= 1 = l
 parSpsUBVec op cs d l | d > 4 = runEval (do
     k <- rseq $ UVP.shiftAdd l
-    u <- rpar (UV.ifilter (\i _ -> odd i) k)
-    v <- rpar (UV.ifilter (\i _ -> even i) k)
-    u' <- rpar (parSpsUBVec op cs (d-1) u)
-    v' <- rpar (parSpsUBVec op cs (d-1) v)
-    r0 $ UVP.zip u' v')
+    u <- rpar (UVP.filterOdd k)
+    v <- rpar (UVP.filterEven k)
+    _ <- rseq u
+    u' <- rparWith rdeepseq (parSpsUBVec op cs (d-1) u)
+    _ <- rseq v
+    v' <- rparWith rdeepseq (parSpsUBVec op cs (d-1) v)
+--    rseq $ UVP.zip u' v')
+    UVP.parZip (rparWith rdeepseq) cs u' v')
 parSpsUBVec op _ _ l = UV.scanl1 op l
 
 parLdfUBVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a

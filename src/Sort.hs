@@ -69,13 +69,13 @@ parBatcherMerge :: (Ord a, V.Unbox a) => Int -> P.PowerList a -> P.PowerList a -
 --          hy = V.head y
 parBatcherMerge d x y | d > 6 = do
     r <- rseq $ P.filterOdd x
-    s <- rseq $ P.filterEven x
-    u <- rseq $ P.filterOdd  y
     v <- rseq $ P.filterEven y
     rv <- parBatcherMerge (d-1) r v
+    s <- rseq $ P.filterEven x
+    u <- rseq $ P.filterOdd  y
     su <- parBatcherMerge (d-1) s u
     rparWith rdeepseq $ P.minMaxZip rv su
-parBatcherMerge _ x y = r0 (merge x y)
+parBatcherMerge _ x y = rseq (merge x y)
 
 merge :: (Ord a, V.Unbox a) => P.PowerList a -> P.PowerList a -> P.PowerList a
 merge a b = V.create $ do
