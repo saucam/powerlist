@@ -44,7 +44,6 @@ library
     , parallel
     , vector
     , vector-split
-    , vector-strategies
   default-language: Haskell2010
 
 executable powerlist-bench
@@ -63,7 +62,6 @@ executable powerlist-bench
     , powerlist
     , vector
     , vector-split
-    , vector-strategies
   default-language: Haskell2010
 
 executable powerlist-exe
@@ -82,7 +80,6 @@ executable powerlist-exe
     , powerlist
     , vector
     , vector-split
-    , vector-strategies
   default-language: Haskell2010
 
 test-suite powerlist-test
@@ -102,5 +99,4 @@ test-suite powerlist-test
     , powerlist
     , vector
     , vector-split
-    , vector-strategies
   default-language: Haskell2010
