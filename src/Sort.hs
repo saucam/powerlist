@@ -2,7 +2,6 @@ module Sort where
 
 import Control.Parallel.Strategies
     ( rdeepseq,
-      r0,
       rpar,
       rseq,
       runEval,

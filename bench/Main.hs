@@ -10,7 +10,7 @@ import Criterion.Main ( defaultMainWith, bench, defaultConfig, nf, bgroup, env )
 import Criterion.Types ( Config(resamples) )
 import Control.DeepSeq (force)
 import Scan ( ldf, sps, sequentialSPS, parLdfUBVec, parSpsUBVec )
-import Sort ( batcherMergeSort, parBatcherMergeSort, defaultSort )
+import Sort ( parBatcherMergeSort, defaultSort )
 
 import qualified Data.Vector.Unboxed         as V
 

@@ -121,10 +121,12 @@ parLdf _ _ _ [x]       = [x]
 parLdf op cs d l | d > 4 = runEval (do
   p <- rpar (odds l)
   q <- rpar (evens l)
+  _ <- rseq p
+  _ <- rseq q
   pq <- rseq (P.parZipWith rdeepseq cs op p q)
   t <- rparWith rdeepseq (parLdf op cs (d-1) pq)
-  k <- r0 (P.parZipWith rdeepseq cs op (0: t) p)
-  r0 $ P.zip k t)
+  k <- rseq (P.parZipWith rdeepseq cs op (0: t) p)
+  rseq $ P.zip k t)
 parLdf op _ _ l = sequentialSPS op l
 
 --------------------------------------------------------------------------------
