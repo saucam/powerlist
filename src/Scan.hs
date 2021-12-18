@@ -1,42 +1,18 @@
 module Scan where
 
 import Control.Parallel.Strategies
-    ( parBuffer,
-      parList,
-      parListChunk,
-      rdeepseq,
+    ( rdeepseq,
       r0,
       rpar,
       rseq,
       runEval,
-      using,
-      rparWith,
-      withStrategy,
-      Eval,
-      Strategy )
-import Control.DeepSeq ( force, NFData )
+      rparWith )
+import Control.DeepSeq ( NFData )
 import Utils ( generateList, generateUVec )
 
 import qualified Data.Vector.Unboxed         as UV
-import qualified Data.Vector                 as V
-import qualified Data.Vector.Split           as S
-import qualified Data.Vector.Unboxed.Mutable as M
 import qualified Powerlist                   as P
 import qualified UBVecPowerlist              as UVP
-
-split :: Int -> [a] -> [[a]]
-split numChunks xs = chunk (length xs `quot` numChunks) xs
-
-chunk :: Int -> [a] -> [[a]]
-chunk n [] = []
-chunk n xs = as : chunk n bs
-  where (as,bs) = splitAt n xs
-
--- generateArray :: Int -> V.Vector Int
--- generateArray uB = V.fromList [1..uB]
-
--- sequentialSPS :: V.Vector Int -> V.Vector Int
--- sequentialSPS = V.scanl1 (+)
 
 --------------------------------------------------------------------------------
 -- Sequential SPS is nothing but haskel's scanl1
@@ -68,13 +44,15 @@ parSps1 op l = runEval (do
 runScan :: ((Int -> Int -> Int) -> P.PowerList Int -> P.PowerList Int)-> Int -> String
 runScan f inp = show $ sum $ f (+) $ generateList inp
 
+odds :: [a] -> [a]
 odds [] = []
 odds [x] = [x]
-odds (x:y:xs) = x : odds xs
+odds (x:_:xs) = x : odds xs
 
+evens :: [a] -> [a]
 evens [] = []
-evens [x] = []
-evens (x:y:xs) = y : evens xs
+evens [_] = []
+evens (_:y:xs) = y : evens xs
 
 parSps2 :: NFData a => Num a => (a -> a -> a) -> Int -> P.PowerList a -> P.PowerList a
 parSps2 _ _ [] = []
@@ -99,11 +77,10 @@ parSps3 op cs d l | d > 4 = runEval (do
     k <- rseq $ P.parZipWith rdeepseq cs op (0: l) l
     u <- rpar (odds k)
     v <- rpar (evens k)
-    --(u, v) <- rseq $ P.unzip k
     u' <- rparWith rdeepseq (parSps3 op cs (d-1) u)
     v' <- rparWith rdeepseq (parSps3 op cs (d-1) v)
     r0 $ P.zip u' v')
-parSps3 op cs d l = sequentialSPS op l
+parSps3 op _ _ l = sequentialSPS op l
 
 runParScan2 :: Int -> Int -> String
 runParScan2 cs inp = show $ sum $ parSps2 (+) cs $ generateList inp
@@ -148,34 +125,34 @@ parLdf op cs d l | d > 4 = runEval (do
   t <- rparWith rdeepseq (parLdf op cs (d-1) pq)
   k <- r0 (P.parZipWith rdeepseq cs op (0: t) p)
   r0 $ P.zip k t)
-parLdf op cs d l = sequentialSPS op l
+parLdf op _ _ l = sequentialSPS op l
 
 --------------------------------------------------------------------------------
 -- SPS and LDF using powerlist unboxed vector implementation
 --------------------------------------------------------------------------------
 parSpsUBVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
-parSpsUBVec op cs d l | UV.length l <= 1 = l
+parSpsUBVec _ _ _ l | UV.length l <= 1 = l
 parSpsUBVec op cs d l | d > 4 = runEval (do
     k <- rseq $ UVP.shiftAdd l
-    u <- rpar (UV.ifilter (\i a -> odd i) k)
-    v <- rpar (UV.ifilter (\i a -> even i) k)
+    u <- rpar (UV.ifilter (\i _ -> odd i) k)
+    v <- rpar (UV.ifilter (\i _ -> even i) k)
     u' <- rpar (parSpsUBVec op cs (d-1) u)
     v' <- rpar (parSpsUBVec op cs (d-1) v)
     r0 $ UVP.zip u' v')
-parSpsUBVec op cs d l = UV.scanl1 (+) l
+parSpsUBVec op _ _ l = UV.scanl1 op l
 
 parLdfUBVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
-parLdfUBVec op cs d l | UV.length l <= 1 = l
+parLdfUBVec _ _ _ l | UV.length l <= 1 = l
 parLdfUBVec op cs d l | d > 4 = runEval (do
---    p <- rpar (UV.ifilter (\i a -> even i) l)
---    q <- rpar (UV.ifilter (\i a -> odd i) l)
-    p <- rseq $ UVP.filterOdd l
-    q <- rseq $ UVP.filterEven l
+    p <- rpar $ UVP.filterOdd l
+    q <- rpar $ UVP.filterEven l
+    _ <- rseq p
+    _ <- rseq q
     pq <- UVP.parZipWith (rparWith rdeepseq) op cs p q
     t <- rpar (parLdfUBVec op cs (d-1) pq)
     k <- rseq $ UVP.shiftAdd2 t p
     UVP.parZip (rparWith rdeepseq) cs k t)
-parLdfUBVec op cs d l = UV.scanl1 (+) l
+parLdfUBVec op _ _ l = UV.scanl1 op l
 
 
 {-- Try chunked approach
