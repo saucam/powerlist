@@ -10,33 +10,58 @@ The output from the algorithms is the sum of the prefix sum array. This is to ma
 ## Results Table
 |Algo|Description|Array Size|Chunk Size|Num Cores|Time taken (s)|Threadscope Log|
 |----|-----------|----------|----------|---------|--------------|---------------|
-|SPS|Sequential scan using powerlist|2^20|-|1|5.357|-
+|[SPSPL](###SPS)|Sequential scan using powerlist|2^20|-|1|5.357|-|
+|[SPSPLPar1](###SPSPL)|Parallel scan using powerlist|2^20|-|1.5|[SPSPLPar120.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSPLPar120.eventlog)|
 |LDFPar|2^20|100|8|0.644|[LDFPar20CS100.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFPar20CS100.eventlog)|
 
 Check below for more details.
 
-### Sequential Prefix sum
+### SPS
+This is the linear iterative algorithm.
 Simple prefix sum performs amazingly well on large arrays
 
-### Sequential Prefix sum using powerlist
+### SPSPL
+This is the sequential scan algorithm implemented using powerlists.
 The sequential prefix sum using powerlists performs poorly as the array grows. It is expected since we introduce
 recursion in an otherwise linear algorithm and generate a lot of intermediate lists which are GC'd.
 
 Benchmarking results over a list of size 2^20:
 ```
-$ stack exec powerlist-bench -- --match glob main/scan/seq/sps +RTS
-benchmarking main/scan/seq/sps
-time                 5.357 s    (4.897 s .. 5.518 s)
-                     0.999 R²   (0.998 R² .. 1.000 R²)
-mean                 5.367 s    (5.354 s .. 5.393 s)
-std dev              70.26 ms   (58.53 ms .. 89.41 ms)
+$ stack exec powerlist-bench -- main/scan/seq/SPSPL +RTS
+benchmarking main/scan/seq/SPSPL
+time                 5.232 s    (5.208 s .. 5.241 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 5.334 s    (5.289 s .. 5.408 s)
+std dev              70.09 ms   (20.22 ms .. 89.39 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+```
+
+### SPSPLPar1 (Parallel Prefix sum using powerlist v1)
+This is first attempt at parallelizing prefix sum implementation using powerlists.
+
+As we can see from below threadscope result, there are several issues:
+
+![](SPSPLPar120.png)
+
+- The initial unzip tuple computation delays the parallelization
+- A lot of sparks are getting created, most of them get GCd
+- There are GC delays
+
+Still there is quite an improvement over SPSPL, ```5.208 / 1.377 = 3.78X !```
+
+```
+$ stack exec powerlist-bench -- main/scan/par/nc/SPSPLPar1 +RTS -N8
+benchmarking main/scan/par/nc/SPSPLPar1
+time                 1.377 s    (NaN s .. 1.447 s)
+                     1.000 R²   (NaN R² .. 1.000 R²)
+mean                 1.375 s    (1.365 s .. 1.388 s)
+std dev              18.16 ms   (11.95 ms .. 22.10 ms)
 variance introduced by outliers: 19% (moderately inflated)
 ```
 
-### Parallel Prefix sum using powerlist v1 (SPSPLPar1) 
-
 ### Parallel Prefix sum using powerlist v2 (SPSPLPar2)
-
+In this version, 
 ### Parallel Prefix sum using powerlist v3 (SPSPLPar3)
 
 ### Sequential Prefix sum using Ladner Fischer algorithm (LDF)

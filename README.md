@@ -27,7 +27,7 @@ Following scan algorithms are supported:
 
 - ```SPS``` : The sequential prefix sum, equivalent to scanl in haskell.
 - ```SPSPL``` : A sequential prefix sum using powerlist, to demonstrate equivalence.
-- ```SPSPLPar1```: A parallel implementation of ```SPSPL```, with the Eval Monad.
+- ```SPSPLPar1```: A parallel implementation of ```SPSPL```, with the Eval Monad, first attempt.
 - ```SPSPLPar2```: More optimized parallel implementation of ```SPSPL```, with the Eval Monad.
 - ```SPSPLPar3```: Only evaluate in parallel till certain depth, then fall back to scanl1
 

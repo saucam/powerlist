@@ -33,16 +33,16 @@ sps op l = P.zip (sps op u) (sps op v)
   where (u, v) = P.unzip $ P.zipWith op (P.rsh 0 l) l
 
 --------------------------------------------------------------------------------
--- Parallel SPS Version1 using powerlist, works for lists with power of 2 length
+-- Parallel SPS Version1 using powerlists
 --------------------------------------------------------------------------------
-parSps1 :: Num a => (a -> a -> a) -> P.PowerList a -> P.PowerList a
+parSps1 :: (NFData a, Num a) => (a -> a -> a) -> P.PowerList a -> P.PowerList a
 parSps1 _ [] = []
 parSps1 _ [x] = [x]
 parSps1 op l = runEval (do
     (u, v) <- rseq $ P.unzip $ P.zipWith op (P.rsh 0 l) l
-    u' <- rpar (parSps1 op u)
-    v' <- rpar (parSps1 op v)
-    return $ P.zip u' v')
+    u' <- rparWith rdeepseq (parSps1 op u)
+    v' <- rparWith rdeepseq (parSps1 op v)
+    rseq $ P.zip u' v')
 
 runScan :: ((Int -> Int -> Int) -> P.PowerList Int -> P.PowerList Int)-> Int -> String
 runScan f inp = show $ sum $ f (+) $ generateList inp
