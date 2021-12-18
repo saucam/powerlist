@@ -2,18 +2,21 @@ module Scan where
 
 import Control.Parallel.Strategies
     ( rdeepseq,
+      parList,
       r0,
       rpar,
       rseq,
       runEval,
-      rparWith )
+      rparWith,
+      Eval )
 import Control.DeepSeq ( NFData )
 import Utils ( generateList, generateUVec )
 
 import qualified Data.Vector.Unboxed         as UV
 import qualified Powerlist                   as P
 import qualified UBVecPowerlist              as UVP
-
+import qualified Data.Vector.Split           as S
+import qualified Data.Vector.Unboxed.Mutable as M
 --------------------------------------------------------------------------------
 -- Sequential SPS is nothing but haskel's scanl1
 --------------------------------------------------------------------------------
@@ -97,8 +100,8 @@ runParSpsUBVec cs inp = show $ UV.sum $ parSpsUBVec (+) cs inp $ generateUVec in
 runParLdfUBVec :: Int -> Int -> String
 runParLdfUBVec cs inp = show $ UV.sum $ parLdfUBVec (+) cs inp $ generateUVec inp
 
---runParLdfChunkUBVec :: Int -> Int -> String
---runParLdfChunkUBVec cs inp = show $ UV.sum $ parLdfChunkUBVec (+) cs inp $ generateUVec inp
+runParLdfChunkUBVec :: Int -> Int -> String
+runParLdfChunkUBVec cs inp = show $ UV.sum $ parLdfChunkUBVec (+) cs $ generateUVec inp
 
 --------------------------------------------------------------------------------
 -- Ladner Fischer Algorithm
@@ -159,40 +162,50 @@ parLdfUBVec op cs d l | d > 4 = runEval (do
     UVP.parZip (rparWith rdeepseq) cs k t)
 parLdfUBVec op _ _ l = UV.scanl1 op l
 
+--------------------------------------------------------------------------------
+-- Chunk the input itself, hybrid of ldf and Blelloch
+--------------------------------------------------------------------------------
+parLdfUBVecNC :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> UVP.PowerList a -> UVP.PowerList a
+parLdfUBVecNC _  _ l | UV.length l <= 1 = l
+parLdfUBVecNC op d l | d > 2 = runEval (do
+    p <- rpar $ UVP.filterOdd l
+    q <- rpar $ UVP.filterEven l
+    _ <- rseq p
+    _ <- rseq q
+    pq <- rparWith rdeepseq $ UVP.zipWith op p q
+    t <- rpar (parLdfUBVecNC op (d-1) pq)
+    k <- rseq $ UVP.shiftAdd2 t p
+    rseq $ UVP.zip k t)
+parLdfUBVecNC op _ l = UV.scanl1 op l
 
-{-- Try chunked approach
-parLdfChunkUBVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> Int -> UVP.PowerList a -> UVP.PowerList a
-parLdfChunkUBVec op cs d l | UV.length l <= 1 = l
-parLdfChunkUBVec op cs d l = runEval $ parLdfChunkVec' op chunks  
+parLdfChunkUBVec :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> Int -> UVP.PowerList a -> UVP.PowerList a
+parLdfChunkUBVec _ _ l | UV.length l <= 1 = l
+parLdfChunkUBVec ops cs l = runEval $ parLdfChunkVec' ops chunks
     where
         n = UV.length l
         chunkSize = 2^cs
         chunks = S.chunksOf chunkSize l
-        numChunks = n `div` chunkSize
         parLdfChunkVec' :: (NFData a, UV.Unbox a, Num a) => (a -> a -> a) -> [UVP.PowerList a] -> Eval (UVP.PowerList a)
-        parLdfChunkVec' op [] = return UV.empty
-        parLdfChunkVec' op chunks = do
-            resChunks <- parList rdeepseq (parLdfUBVec op cs d <$> chunks)
-            res <- rdeepseq $ UV.concat resChunks
+        parLdfChunkVec' _ [] = return UV.empty
+        parLdfChunkVec' op vChunks = do
+            resChunks <- parList rseq (parLdfUBVecNC op cs <$> vChunks)
+            res <- rseq $ UV.concat resChunks
             -- get last element of each block
             lastelems <- parList rdeepseq (UV.last <$> resChunks)
-            lastScan <- rpar (UV.fromList $ sequentialSPS op lastelems)
+            lastScan <- rseq (UV.fromList $ sequentialSPS op lastelems)
             rseq $ UV.create $ do
                 m <- UV.thaw res
                 mergeChunks (n-1) (UV.tail $ UV.reverse lastScan) m
                 return m
-                where mergeChunks i lastScan m
-                       | i > 0 = do
-                            let ad = UV.head lastScan
-                            let start = i
-                            go m chunkSize start ad 0
-                            mergeChunks (i-chunkSize) (UV.tail lastScan) m
-                       | otherwise = return ()
-          
-go m chunkSize start v id
-    | id <= chunkSize = do
-      curr <- M.unsafeRead m (start - id)
-      M.unsafeWrite m (start - id) (curr + v)
-      go m chunkSize start v (id+1)
-    | otherwise = return ()
--}
+        mergeChunks i lastScan m
+              | i > chunkSize = do
+                let ad = UV.head lastScan
+                go m chunkSize i ad 0
+                mergeChunks (i-chunkSize) (UV.tail lastScan) m
+              | otherwise = return ()
+        go m chs start v i
+              | i < chs = do
+                curr <- M.unsafeRead m (start - i)
+                M.unsafeWrite m (start - i) (curr + v)
+                go m chs start v (i + 1)
+              | otherwise = return ()

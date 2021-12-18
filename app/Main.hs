@@ -24,8 +24,7 @@ run opts = case opts of
     -- Run parallel prefix sum using unboxed vecpowerlist
     Opts (Scan SPSUBVecPLPar n cs) -> putStrLn $ runParSpsUBVec cs n
     Opts (Scan LDFUBVecPLPar n cs) -> putStrLn $ runParLdfUBVec cs n
-    -- Opts (Scan LDFChunkUBVecPLPar n cs) -> putStrLn $ runParLdfChunkUBVec cs n
+    Opts (Scan LDFChunkUBVecPLPar n cs) -> putStrLn $ runParLdfChunkUBVec cs n
     -- Run sort
     Opts (Sort DEFAULT n cs) -> putStrLn $ runDefaultSort cs n
     Opts (Sort BATCHER n cs) -> putStrLn $ runBatcherSort cs n
-    Opts Scan {} -> putStrLn "Scan algorithm currently not supported"
