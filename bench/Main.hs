@@ -68,13 +68,8 @@ main = defaultMainWith baseConfig [
                   ]
                 ],
                 bgroup "sort" [
-                  bgroup "par" [
-                    bench "BATCHER" $ nf (parBatcherMergeSort 20 ) sortInpUV
-                  ],
-                  bgroup "seq" [
-                    bench "BATCHER" $ nf batcherMergeSort sortInpUV,
+                    bench "BATCHER" $ nf (parBatcherMergeSort 20 ) sortInpUV,
                     bench "DEFAULT" $ nf defaultSort sortInpL
-                  ]
                 ]
             ]
          ]
