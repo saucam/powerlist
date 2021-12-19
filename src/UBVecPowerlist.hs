@@ -2,12 +2,12 @@
 module UBVecPowerlist where
 
 import Control.Parallel.Strategies
+    ( Eval, Strategy, parList, rdeepseq, rseq )
 
 import qualified Data.Vector.Unboxed         as V
 import qualified Data.Vector.Unboxed.Mutable as M
 import qualified Data.Vector.Split           as S
 
--- Using simple list here as it would be most performant
 type PowerList a = V.Vector a
 
 tie :: V.Unbox a => PowerList a -> PowerList a -> PowerList a
@@ -17,8 +17,6 @@ tie = (V.++)
 zip ::  (V.Unbox a, Num a) => PowerList a -> PowerList a -> PowerList a
 {-# INLINE zip #-}
 --zip xs ys = V.generate (V.length xs + V.length ys) (\i -> if even i then xs V.! (i `div` 2) else ys V.! (i `div` 2))
---zip _ _ = error "Non similar powerlists"
-
 zip xs ys = V.create $ do
   m <- M.new n
   write m 0
