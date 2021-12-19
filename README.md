@@ -11,7 +11,8 @@ powerlists, p and q of the same length using 2 operators described below:
 - <img src="https://render.githubusercontent.com/render/math?math=p\ |\ q"> is the powerlist formed by concatenating p and q.
 - <img src="https://render.githubusercontent.com/render/math?math=p\ \bowtie\ q"> is the powerlist formed by successively taking alternate items from p and q, starting with p.
 
-Further, both p and q are restricted to contain similar elements.
+Hence the length of a powerlist is a power of 2. Further, both p and q are restricted to contain similar elements.
+However it is possible to design algorithms that eliminate this constraint.
 
 Read on for the list of supported algorithms.
 
