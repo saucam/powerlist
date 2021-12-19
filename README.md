@@ -43,12 +43,11 @@ To build the executables, simply run
 
 ```
 stack build
-
 ```
 This builds 2 different executables:
 
 - ```powerlist-exe``` for executing and analyzing each of the different algorithms.
-- ```powerlist-benchmark`` for benchmarking each of the algorithm functions by executing them multiple times. This uses [criterion](https://hackage.haskell.org/package/criterion) package, hence all command line options of criterion can be used.
+- ```powerlist-benchmark``` for benchmarking each of the algorithm functions by executing them multiple times. This uses [criterion](https://hackage.haskell.org/package/criterion) package, hence all command line options of criterion can be used.
 
 ### Running
 
@@ -84,7 +83,7 @@ Available options:
 
 ```
 
-So for example to run simple prefix sum algorithm using powerlist on array of input size 2^5:
+So for example to run simple prefix sum algorithm using powerlist on array of input size ```2^5```:
 
 ```
 stack exec powerlist-exe -- scan --algo SPSPL --size 5
