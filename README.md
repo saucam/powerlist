@@ -15,62 +15,90 @@ Further, both p and q are restricted to contain similar elements.
 
 Read on for the list of supported algorithms.
 
-### Algorithms
+## Algorithms
 
 We support many different algorithms of the following problems for benchmark and comparison.
 
 - Prefix Sum (Scan)
+  - ```SPS```                : The sequential prefix sum, which is nothing but scanl1 in haskell.
+  - ```SPSPL```              : A sequential prefix sum using powerlist, to demonstrate equivalence.
+  - ```SPSPLPar1```          : A parallel implementation of ```SPSPL```, with the Eval Monad, first attempt.
+  - ```SPSPLPar2```          : More optimized parallel implementation of ```SPSPL```, with the Eval Monad.
+  - ```SPSPLPar3```          : Only evaluate in parallel till certain depth, then fall back to scanl1.
+  - ```LDF```                : The sequential Ladner Fischer algorithm implementation using powerlist.
+  - ```LDFPar```             : A parallel implementation of ```LDF``` using eval monad.
+  - ```SPSUBVecPLPar```      : An implementation of ```SPSPLPar3``` using Unboxed Vectors as powerlists, with more optimizations.
+  - ```LDFUBVecPLPar```      : An implementation of ```LDFPar``` using Unboxed Vectors as powerlists, with more optimizations.
+  - ```LDFChunkUBVecPLPar``` : An implementation of ```LDFUBVecPLPar``` that creates chunks of input and applies ```LDF``` scheme to each chunk in parallel. This is a hybrid of ```LDF``` and an algorithm due to Bleloch [[2]](#2).
+
 - Sort
+  - ```DEFAULT```            : Default sort in haskell.
+  - ```BATCHER```            : A parallel implementation of the Batcher merge sort algorithm using powerlists.
 
-#### Scan algorithms
-Following scan algorithms are supported:
+Read more about the algorithm details [here](docs/Algorithms.md).
 
-- ```SPS``` : The sequential prefix sum, equivalent to scanl in haskell.
-- ```SPSPL``` : A sequential prefix sum using powerlist, to demonstrate equivalence.
-- ```SPSPLPar1```: A parallel implementation of ```SPSPL```, with the Eval Monad, first attempt.
-- ```SPSPLPar2```: More optimized parallel implementation of ```SPSPL```, with the Eval Monad.
-- ```SPSPLPar3```: Only evaluate in parallel till certain depth, then fall back to scanl1
+### Building
 
-#### Sort algorithms
-Following sort algorithms are supported:
-
-- ```DEFAULT``` : This is the default sort implementation in haskell
-- ```BATCHER``` : This is the batcher merge sort implementation using powerlists.
-
-### Running via stack
-
-To run scan algorithm
+To build the executables, simply run
 
 ```
-stack run -- scan
-```
-shows the available options
+stack build
 
 ```
-Usage: powerlist-exe scan (-a|--algo K) (-s|--size R)
+This builds 2 different executables:
+
+- ```powerlist-exe``` for executing and analyzing each of the different algorithms.
+- ```powerlist-benchmark`` for benchmarking each of the algorithm functions by executing them multiple times. This uses [criterion](https://hackage.haskell.org/package/criterion) package, hence all command line options of criterion can be used.
+
+### Running
+
+To run each of the algorithms, use the ```powerlist-exe``` executable, which supports 2 commands ```scan``` and ```sort```:
+
+```
+$ stack exec powerlist-exe -- scan
+Usage: powerlist-exe scan (-a|--algo ALGONAME) (-s|--size INPSIZE) 
+                          [-c|--csize CHUNKSIZE]
   Run Scan Algorithm
 
 Available options:
-  -a,--algo K              Supported Algos: SPS, LDF
-  -s,--size R              Size of array on which to run scan
+  -a,--algo ALGONAME       Supported Algos:
+                           [SPS,SPSPL,SPSPLPar1,SPSPLPar2,SPSPLPar3,LDF,LDFPar,SPSUBVecPLPar,LDFUBVecPLPar,LDFChunkUBVecPLPar]
+  -s,--size INPSIZE        Size of array in terms of powers of 2 on which to run
+                           scan
+  -c,--csize CHUNKSIZE     Size of chunks for parallelization
   -h,--help                Show this help text
 ```
+and
+```
+$ stack exec powerlist-exe -- sort
+Usage: powerlist-exe sort (-a|--algo ALGONAME) (-s|--size INPSIZE) 
+                          [-c|--csize CHUNKSIZE]
+  Run Sort Algorithm
 
-To run simple prefix sum algorithm on an array of size 2^5 in sequential mode:
+Available options:
+  -a,--algo ALGONAME       Supported Algos: [DEFAULT,BATCHER]
+  -s,--size INPSIZE        Size of array in terms of powers of 2 on which to run
+                           sort
+  -c,--csize CHUNKSIZE     Size of chunks for parallelization
+  -h,--help                Show this help text
 
 ```
-stack run -- scan --algo SPS --size 5
-```
 
-To run the parallel version of the same algorithm using powerlist:
+So for example to run simple prefix sum algorithm using powerlist on array of input size 2^5:
 
 ```
-stack run -- scan --algo SPSPLPar1 --size 5
+stack exec powerlist-exe -- scan --algo SPSPL --size 5
 ```
-To run the more optimized parallel version, and supply chunk size for splitting zip
+
+To run the parallel version of the same algorithm using powerlist, on 8 cores and generate eventlog file for threadscope analysis:
 
 ```
-stack run -- scan --algo SPSPLPar2 --size 20 --csize 100
+stack exec powerlist-exe -- scan --algo SPSPLPar1 --size 20 +RTS -N8 -ls
+```
+To run the more optimized parallel version, and supply (optional) chunk size for splitting methods like zip etc:
+
+```
+stack exec powerlist-exe -- scan --algo SPSPLPar2 --size 20 --csize 256 +RTS -N8 -ls
 ```
 
 ### Benchmarks

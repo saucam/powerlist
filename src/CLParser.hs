@@ -29,8 +29,19 @@ import Options.Applicative
 
 data RunType = Sequential | Parallel
 
-data ScanAlgo = SPS | SPSPL | SPSPLPar1 | SPSPLPar2 | SPSPLPar3 | LDF | LDFPar | SPSUBVecPLPar | LDFUBVecPLPar | LDFChunkUBVecPLPar
-data SortAlgo = DEFAULT | BATCHER
+data ScanAlgo = SPS
+                | SPSPL
+                | SPSPLPar1
+                | SPSPLPar2
+                | SPSPLPar3
+                | LDF
+                | LDFPar
+                | SPSUBVecPLPar
+                | LDFUBVecPLPar
+                | LDFChunkUBVecPLPar
+                deriving (Show, Enum)
+
+data SortAlgo = DEFAULT | BATCHER deriving (Show, Enum)
 
 newtype Opts = Opts { cmd :: Command }
 -- Add more features here in the future
@@ -44,8 +55,8 @@ parser = Opts <$> hsubparser (scanCommand <> sortCommand)
       sortOptions :: Parser Command
       sortOptions =
           Sort
-          <$> option sortAlgoReader (long "algo" <> short 'a' <> metavar "ALGONAME" <> help "Supported Algos: DEFAULT, BATCHER")
-          <*> option auto (long "size" <> short 's' <> metavar "R" <> help "Size of array in terms of powers of 2 on which to run sort")
+          <$> option sortAlgoReader (long "algo" <> short 'a' <> metavar "ALGONAME" <> help ("Supported Algos: " ++ show [DEFAULT ..]))
+          <*> option auto (long "size" <> short 's' <> metavar "INPSIZE" <> help "Size of array in terms of powers of 2 on which to run sort")
           <*> option auto (long "csize" <> short 'c' <> metavar "CHUNKSIZE" <> value 64 <> help "Size of chunks for parallelization")
       sortAlgoReader :: ReadM SortAlgo
       sortAlgoReader = eitherReader $ \arg ->
@@ -58,8 +69,8 @@ parser = Opts <$> hsubparser (scanCommand <> sortCommand)
       scanOptions :: Parser Command
       scanOptions =
           Scan
-          <$> option scanAlgoReader (long "algo" <> short 'a' <> metavar "K" <> help "Supported Algos: SPS, LDF")
-          <*> option auto (long "size" <> short 's' <> metavar "R" <> help "Size of array in terms of powers of 2 on which to run scan")
+          <$> option scanAlgoReader (long "algo" <> short 'a' <> metavar "ALGONAME" <> help ("Supported Algos: " ++ show [SPS ..]))
+          <*> option auto (long "size" <> short 's' <> metavar "INPSIZE" <> help "Size of array in terms of powers of 2 on which to run scan")
           <*> option auto (long "csize" <> short 'c' <> metavar "CHUNKSIZE" <> value 64 <> help "Size of chunks for parallelization")
       scanAlgoReader :: ReadM ScanAlgo
       scanAlgoReader = eitherReader $ \arg ->
