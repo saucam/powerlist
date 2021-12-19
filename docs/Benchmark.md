@@ -13,7 +13,7 @@ The output from the algorithms is the sum of the prefix sum array. This is to ma
 |Algo|Description|Array Size|Chunk Size|Num Cores|Time taken (s)|Threadscope Log|
 |----|-----------|----------|----------|---------|--------------|---------------|
 |[SPSPL](#sps-sequential-scan-using-powerlist)|Sequential scan using powerlist|2^20|-|1|5.232|-|
-|[SPSPLPar1](#spspl-parallel-scan-using-powerlist-v1)|Parallel scan using powerlist|2^20|-|8|1.377|[SPSPLPar120.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSPLPar120.eventlog)|
+|[SPSPLPar1](#spspl-parallel-scan-using-powerlist-v1)|Parallel scan using powerlist|2^20|-|8|1.506|[SPSPLPar120.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSPLPar120.eventlog)|
 |LDFPar|2^20|100|8|0.644|[LDFPar20CS100.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFPar20CS100.eventlog)|
 
 Check below for more details.
@@ -36,6 +36,7 @@ variance introduced by outliers: 19% (moderately inflated)
 ```
 
 ### SPSPLPar1 (Parallel Scan using powerlist v1)
+
 This is first attempt at parallelizing prefix sum implementation using powerlists.
 
 As we can see from below threadscope result, there are several issues:
@@ -51,34 +52,308 @@ Still there is quite an improvement over ```SPSPL```, <img src="https://render.g
 ```
 $ stack exec powerlist-bench -- main/scan/par/nc/SPSPLPar1 +RTS -N8
 benchmarking main/scan/par/nc/SPSPLPar1
-time                 1.377 s    (NaN s .. 1.447 s)
-                     1.000 R²   (NaN R² .. 1.000 R²)
-mean                 1.375 s    (1.365 s .. 1.388 s)
-std dev              18.16 ms   (11.95 ms .. 22.10 ms)
+time                 1.506 s    (1.316 s .. 1.576 s)
+                     0.996 R²   (0.994 R² .. 1.000 R²)
+mean                 1.393 s    (1.324 s .. 1.448 s)
+std dev              77.82 ms   (70.55 ms .. 79.28 ms)
 variance introduced by outliers: 19% (moderately inflated)
 ```
 
 ### SPSPLPar2 (Parallel Prefix sum using powerlist v2)
-In this version, we further optimize the first step that seems to be the bottleneck for the computation.
+
+We benchmark at 3 different chunk size 128, 256, 512
+
+```
+$ stack exec powerlist-bench -- --match pattern SPSPLPar2 +RTS -N8
+benchmarking main/scan/par/128/SPSPLPar2
+time                 1.635 s    (1.429 s .. 1.691 s)
+                     0.997 R²   (0.990 R² .. 1.000 R²)
+mean                 1.559 s    (1.529 s .. 1.622 s)
+std dev              49.62 ms   (29.51 ms .. 55.08 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking main/scan/par/256/SPSPLPar2
+time                 1.525 s    (1.486 s .. 1.625 s)
+                     0.999 R²   (0.996 R² .. 1.000 R²)
+mean                 1.549 s    (1.531 s .. 1.579 s)
+std dev              30.26 ms   (15.70 ms .. 34.72 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking main/scan/par/512/SPSPLPar2
+time                 1.542 s    (NaN s .. 1.665 s)
+                     0.999 R²   (0.996 R² .. 1.000 R²)
+mean                 1.557 s    (1.541 s .. 1.567 s)
+std dev              25.17 ms   (12.45 ms .. 28.79 ms)
+variance introduced by outliers: 19% (moderately inflated)
+```
+
+Slightly worse than previous, most likely due to lot of sparks being created:
+
+![](SPSPLPar220CS256.png)
 
 ### SPSPLPar3 (Parallel Prefix sum using powerlist, introduce depth)
 
-### Sequential Prefix sum using Ladner Fischer algorithm (LDF)
-
-### Parallel Prefix sum using Ladner Fischer algorithm (LDFPar)
-
-1. Run for array of length 2^20, using chunk size 100, over 8 cores
-
+Reduce the number of sparks by recursing till a certain depth.
 
 ```
-time stack run -- scan --algo LDFPar --size 20 --csize 100 +RTS -N8 -ls
-192154133857304576
+$ stack exec powerlist-bench -- --match pattern SPSPLPar3 +RTS -N8
+benchmarking main/scan/par/128/SPSPLPar3
+time                 1.399 s    (1.287 s .. 1.497 s)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 1.475 s    (1.447 s .. 1.503 s)
+std dev              51.38 ms   (32.67 ms .. 65.55 ms)
+variance introduced by outliers: 19% (moderately inflated)
 
-real	0m0.644s
-user	0m1.368s
-sys	0m1.116s
+benchmarking main/scan/par/256/SPSPLPar3
+time                 1.397 s    (1.252 s .. 1.413 s)
+                     0.998 R²   (0.994 R² .. 1.000 R²)
+mean                 1.434 s    (1.410 s .. 1.453 s)
+std dev              41.29 ms   (29.74 ms .. 47.58 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking main/scan/par/512/SPSPLPar3
+time                 1.391 s    (1.390 s .. 1.404 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.414 s    (1.403 s .. 1.423 s)
+std dev              15.59 ms   (3.254 ms .. 20.39 ms)
+variance introduced by outliers: 19% (moderately inflated)
 ```
 
-![](LDFPar20CS100.png)
+Performs slightly better. We can see the number of sparks have reduced:
+
+![](SPSPLPar320CS256.png)
+
+### LDF (Sequential scan using Ladner Fischer algorithm)
+
+Performs much better since this algorithm does less work than SPS.
+
+```
+$ stack exec powerlist-bench -- main/scan/seq/LDF
+benchmarking main/scan/seq/LDF
+time                 490.7 ms   (426.7 ms .. 574.2 ms)
+                     0.997 R²   (0.989 R² .. 1.000 R²)
+mean                 443.6 ms   (429.5 ms .. 455.9 ms)
+std dev              29.15 ms   (23.32 ms .. 32.58 ms)
+variance introduced by outliers: 19% (moderately inflated)
+```
+
+### LDFPar (Parallel scan using Ladner Fischer algorithm)
+
+Parallel version, further reduces the time, uses chunking for operations like ```zipWith```
+
+```
+benchmarking main/scan/par/128/LDFPar
+time                 459.8 ms   (413.8 ms .. 614.0 ms)
+                     0.977 R²   (0.917 R² .. 1.000 R²)
+mean                 436.2 ms   (426.9 ms .. 460.8 ms)
+std dev              40.72 ms   (148.6 μs .. 46.38 ms)
+variance introduced by outliers: 22% (moderately inflated)
+
+benchmarking main/scan/par/256/LDFPar
+time                 467.6 ms   (355.2 ms .. 542.9 ms)
+                     0.994 R²   (0.979 R² .. 1.000 R²)
+mean                 419.5 ms   (358.7 ms .. 442.6 ms)
+std dev              43.17 ms   (15.77 ms .. 52.87 ms)
+variance introduced by outliers: 23% (moderately inflated)
+
+benchmarking main/scan/par/512/LDFPar
+time                 392.1 ms   (358.8 ms .. 450.1 ms)
+                     0.998 R²   (0.994 R² .. 1.000 R²)
+mean                 383.7 ms   (371.3 ms .. 395.3 ms)
+std dev              19.57 ms   (1.240 ms .. 26.99 ms)
+variance introduced by outliers: 19% (moderately inflated)
+```
+
+Sparks have reduced significantly as expected, and hence the better run time:
+
+![](LDFPar20CS512.png)
 
 Load seems to be distributed evenly. There are GC pauses as expected as many intermediate lists are generated.
+
+### SPSUBVecPLPar (SPSPLPar3 using Unboxed Vector, with additional improvements)
+
+Significant improvement over ```SPSPLPar3```. We try several chunk sizes
+
+```
+$ stack exec powerlist-bench -- --match pattern SPSUBVecPLPar +RTS -N8
+benchmarking main/scan/par/128/SPSUBVecPLPar
+time                 544.7 ms   (416.3 ms .. 617.0 ms)
+                     0.993 R²   (0.986 R² .. 1.000 R²)
+mean                 554.4 ms   (540.3 ms .. 575.4 ms)
+std dev              24.59 ms   (21.84 ms .. 26.68 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking main/scan/par/256/SPSUBVecPLPar
+time                 660.6 ms   (649.6 ms .. 687.4 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 617.2 ms   (589.9 ms .. 632.7 ms)
+std dev              26.49 ms   (11.16 ms .. 32.08 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking main/scan/par/512/SPSUBVecPLPar
+time                 613.9 ms   (NaN s .. 676.3 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 595.6 ms   (590.1 ms .. 605.0 ms)
+std dev              10.94 ms   (4.638 ms .. 13.96 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking main/scan/par/1024/SPSUBVecPLPar
+time                 565.5 ms   (556.4 ms .. 569.2 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 563.1 ms   (561.4 ms .. 563.6 ms)
+std dev              2.800 ms   (133.2 μs .. 3.358 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking main/scan/par/2048/SPSUBVecPLPar
+time                 592.2 ms   (487.0 ms .. 691.2 ms)
+                     0.996 R²   (0.985 R² .. 1.000 R²)
+mean                 567.6 ms   (541.7 ms .. 589.3 ms)
+std dev              36.74 ms   (18.59 ms .. 41.84 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking main/scan/par/4096/SPSUBVecPLPar
+time                 600.6 ms   (549.2 ms .. 730.3 ms)
+                     0.994 R²   (0.978 R² .. 1.000 R²)
+mean                 562.1 ms   (540.8 ms .. 584.7 ms)
+std dev              30.56 ms   (20.07 ms .. 35.13 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking main/scan/par/8192/SPSUBVecPLPar
+time                 571.9 ms   (556.4 ms .. 608.7 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 555.3 ms   (527.6 ms .. 565.3 ms)
+std dev              18.66 ms   (2.643 ms .. 20.32 ms)
+variance introduced by outliers: 19% (moderately inflated)
+```
+
+Chunk size 128 and 8192 seem to be similar in performance!
+
+A lot of sparks are generated:
+
+![](SPSUBVecPLPar20CS128)
+
+### LDFUBVecPLPar (LDFPar using Unboxed Vector)
+
+Again trying several chunk sizes
+
+```
+$ stack exec powerlist-bench -- --match pattern LDFUBVecPLPar +RTS -N8
+benchmarking main/scan/par/128/LDFUBVecPLPar
+time                 211.5 ms   (196.3 ms .. 223.9 ms)
+                     0.992 R²   (0.988 R² .. 1.000 R²)
+mean                 189.0 ms   (162.7 ms .. 204.6 ms)
+std dev              31.78 ms   (5.111 ms .. 41.63 ms)
+variance introduced by outliers: 48% (moderately inflated)
+
+benchmarking main/scan/par/256/LDFUBVecPLPar
+time                 183.6 ms   (173.8 ms .. 198.2 ms)
+                     0.989 R²   (0.948 R² .. 1.000 R²)
+mean                 180.2 ms   (170.2 ms .. 185.3 ms)
+std dev              12.27 ms   (6.621 ms .. 15.49 ms)
+variance introduced by outliers: 15% (moderately inflated)
+
+benchmarking main/scan/par/512/LDFUBVecPLPar
+time                 193.4 ms   (179.3 ms .. 206.3 ms)
+                     0.996 R²   (0.990 R² .. 1.000 R²)
+mean                 189.6 ms   (186.1 ms .. 193.4 ms)
+std dev              4.414 ms   (2.538 ms .. 6.067 ms)
+variance introduced by outliers: 14% (moderately inflated)
+
+benchmarking main/scan/par/1024/LDFUBVecPLPar
+time                 171.4 ms   (159.3 ms .. 192.6 ms)
+                     0.983 R²   (0.959 R² .. 1.000 R²)
+mean                 191.9 ms   (183.0 ms .. 198.7 ms)
+std dev              13.42 ms   (7.814 ms .. 17.33 ms)
+variance introduced by outliers: 15% (moderately inflated)
+
+benchmarking main/scan/par/2048/LDFUBVecPLPar
+time                 196.0 ms   (187.9 ms .. 210.5 ms)
+                     0.997 R²   (0.991 R² .. 1.000 R²)
+mean                 165.3 ms   (151.9 ms .. 174.3 ms)
+std dev              19.56 ms   (10.60 ms .. 22.73 ms)
+variance introduced by outliers: 31% (moderately inflated)
+
+benchmarking main/scan/par/4096/LDFUBVecPLPar
+time                 191.0 ms   (183.8 ms .. 211.1 ms)
+                     0.993 R²   (0.972 R² .. 1.000 R²)
+mean                 161.0 ms   (148.1 ms .. 173.8 ms)
+std dev              23.93 ms   (6.802 ms .. 33.15 ms)
+variance introduced by outliers: 47% (moderately inflated)
+
+benchmarking main/scan/par/8192/LDFUBVecPLPar
+time                 180.9 ms   (157.8 ms .. 244.5 ms)
+                     0.978 R²   (0.958 R² .. 0.998 R²)
+mean                 165.2 ms   (152.2 ms .. 171.6 ms)
+std dev              24.14 ms   (6.893 ms .. 33.13 ms)
+variance introduced by outliers: 32% (moderately inflated)
+```
+
+Chunk size 1024 stands out.
+
+Threadscope looks quite clean as well
+
+![](LDFUBVecPLPar20CS1024.png)
+
+### LDFChunkUBVecPLPar (Hybrid LDFPar and Bleloch algorithm)
+
+The chunk size here actually is the splitting of input vector itself and not splitting the operators like ```zipWith```.
+
+We try several chunk sizes from 4 till 10
+
+```
+$ stack exec powerlist-bench -- --match pattern LDFChunkUBVecPLPar --output LDFChunkUBVecPLPar.html +RTS -N8
+benchmarking main/scan/par/4/LDFChunkUBVecPLPar
+time                 412.2 ms   (395.6 ms .. 452.2 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 393.8 ms   (373.6 ms .. 403.4 ms)
+std dev              20.10 ms   (3.515 ms .. 23.90 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking main/scan/par/5/LDFChunkUBVecPLPar
+time                 394.1 ms   (315.2 ms .. 438.9 ms)
+                     0.984 R²   (0.966 R² .. 1.000 R²)
+mean                 361.3 ms   (347.9 ms .. 382.3 ms)
+std dev              21.38 ms   (7.251 ms .. 25.15 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking main/scan/par/6/LDFChunkUBVecPLPar
+time                 288.8 ms   (139.8 ms .. 298.2 ms)
+                     0.984 R²   (0.867 R² .. 1.000 R²)
+mean                 284.1 ms   (264.3 ms .. 296.5 ms)
+std dev              20.78 ms   (19.25 ms .. 25.25 ms)
+variance introduced by outliers: 18% (moderately inflated)
+
+benchmarking main/scan/par/7/LDFChunkUBVecPLPar
+time                 290.0 ms   (252.0 ms .. 328.4 ms)
+                     0.985 R²   (0.912 R² .. 1.000 R²)
+mean                 307.4 ms   (299.2 ms .. 313.8 ms)
+std dev              15.95 ms   (15.22 ms .. 17.99 ms)
+variance introduced by outliers: 16% (moderately inflated)
+
+benchmarking main/scan/par/8/LDFChunkUBVecPLPar
+time                 98.87 ms   (92.33 ms .. 103.0 ms)
+                     0.991 R²   (0.982 R² .. 0.999 R²)
+mean                 94.89 ms   (88.24 ms .. 99.54 ms)
+std dev              7.788 ms   (6.904 ms .. 9.875 ms)
+variance introduced by outliers: 21% (moderately inflated)
+
+benchmarking main/scan/par/9/LDFChunkUBVecPLPar
+time                 102.7 ms   (99.58 ms .. 105.2 ms)
+                     0.995 R²   (0.989 R² .. 0.999 R²)
+mean                 98.57 ms   (89.02 ms .. 101.7 ms)
+std dev              8.754 ms   (5.791 ms .. 13.96 ms)
+variance introduced by outliers: 21% (moderately inflated)
+
+benchmarking main/scan/par/10/LDFChunkUBVecPLPar
+time                 97.94 ms   (92.50 ms .. 101.6 ms)
+                     0.992 R²   (0.963 R² .. 1.000 R²)
+mean                 97.75 ms   (93.56 ms .. 100.5 ms)
+std dev              8.271 ms   (3.795 ms .. 9.735 ms)
+variance introduced by outliers: 21% (moderately inflated)
+```
+
+The chunked approach with chunk size 10 works excellent!
+
+The merging at the end is sequential otherwise it could have been even better.
+
+![](LDFChunkUBVecPLPar20CS10.png)

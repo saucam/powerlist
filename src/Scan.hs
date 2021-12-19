@@ -79,12 +79,14 @@ parSps3 :: NFData a => Num a => (a -> a -> a) -> Int -> Int -> P.PowerList a -> 
 parSps3 _ _ _ [] = []
 parSps3 _ _ _ [x] = [x]
 parSps3 op cs d l | d > 4 = runEval (do
-    k <- rseq $ P.parZipWith rdeepseq cs op (0: l) l
+    k <- r0 $ P.parZipWith rdeepseq cs op (0: l) l
     u <- rpar (odds k)
     v <- rpar (evens k)
+    _ <- rseq u
     u' <- rparWith rdeepseq (parSps3 op cs (d-1) u)
+    _ <- rseq v
     v' <- rparWith rdeepseq (parSps3 op cs (d-1) v)
-    r0 $ P.zip u' v')
+    rseq $ P.zip u' v')
 parSps3 op _ _ l = sequentialSPS op l
 
 runParScan2 :: Int -> Int -> String
