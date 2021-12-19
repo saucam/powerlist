@@ -36,6 +36,23 @@ Prelude> scanl1 (+) [1, 2, 3, 4]
 ```
 ### SPSPL
 
-Powerlist 
+Powerlist give a simple prefix sum function:
 
+<img src="https://render.githubusercontent.com/render/math?math=sps \langle x \rangle = \langle x \rangle">
+
+<img src="https://render.githubusercontent.com/render/math?math=sps L = (sps u) \bowtie (sps v)">
+<img src="https://render.githubusercontent.com/render/math?math=where u \bowtie v = L^* \bigoplus L">
+
+# Future Work
+
+There are other optimizations possible that can be explored further:
+
+1. Exploiting the below powerlist laws:
+
+For any scalar infix operator <img src="https://render.githubusercontent.com/render/math?math=\bigoplus">, and powerlists <img src="https://render.githubusercontent.com/render/math?math=p, q, u, v">
+
+<img src="https://render.githubusercontent.com/render/math?math=(p | q)\bigoplus(u | v) = (p \bigoplus u) | (q \bigoplus v)">
+<img src="https://render.githubusercontent.com/render/math?math=(p \bowtie q)\bigoplus(u \bowtie v) = (p \bigoplus u) \bowtie (q \bigoplus v)">
+
+2. Using parallel libraries like [massive](https://github.com/lehins/massiv) that support nested parallelism.
 
