@@ -23,6 +23,7 @@ The output from the algorithms is the sum of the prefix sum array. This is to ma
 |Algo|Description|Array Size|Chunk Size|Num Cores|Time taken (s)|Threadscope Log|
 |----|-----------|----------|----------|---------|--------------|---------------|
 |LDFPar|2^20|100|8|0.644|[LDFPar20CS100.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFPar20CS100.eventlog)|
+|LDFUBVecPLPar|2^20|1024|8|0.165||
 
 ### Sort BATCHER
 
@@ -250,54 +251,54 @@ A lot of sparks are generated:
 Again trying several chunk sizes
 
 ```
-$ stack exec powerlist-bench -- --match pattern LDFUBVecPLPar +RTS -N8
+$ stack exec powerlist-bench -- --match pattern LDFUBVecPLPar --output LDFUBVecPLPar.html +RTS -N8 
 benchmarking main/scan/par/128/LDFUBVecPLPar
-time                 211.5 ms   (196.3 ms .. 223.9 ms)
-                     0.992 R²   (0.988 R² .. 1.000 R²)
-mean                 189.0 ms   (162.7 ms .. 204.6 ms)
-std dev              31.78 ms   (5.111 ms .. 41.63 ms)
-variance introduced by outliers: 48% (moderately inflated)
+time                 198.1 ms   (183.2 ms .. 219.1 ms)
+                     0.989 R²   (0.973 R² .. 1.000 R²)
+mean                 183.2 ms   (172.2 ms .. 196.9 ms)
+std dev              27.82 ms   (8.755 ms .. 37.65 ms)
+variance introduced by outliers: 47% (moderately inflated)
 
 benchmarking main/scan/par/256/LDFUBVecPLPar
-time                 183.6 ms   (173.8 ms .. 198.2 ms)
-                     0.989 R²   (0.948 R² .. 1.000 R²)
-mean                 180.2 ms   (170.2 ms .. 185.3 ms)
-std dev              12.27 ms   (6.621 ms .. 15.49 ms)
-variance introduced by outliers: 15% (moderately inflated)
-
-benchmarking main/scan/par/512/LDFUBVecPLPar
-time                 193.4 ms   (179.3 ms .. 206.3 ms)
-                     0.996 R²   (0.990 R² .. 1.000 R²)
-mean                 189.6 ms   (186.1 ms .. 193.4 ms)
-std dev              4.414 ms   (2.538 ms .. 6.067 ms)
+time                 185.7 ms   (177.4 ms .. 207.9 ms)
+                     0.994 R²   (0.989 R² .. 1.000 R²)
+mean                 175.8 ms   (169.5 ms .. 179.6 ms)
+std dev              9.922 ms   (8.190 ms .. 12.46 ms)
 variance introduced by outliers: 14% (moderately inflated)
 
+benchmarking main/scan/par/512/LDFUBVecPLPar
+time                 190.8 ms   (154.8 ms .. 252.5 ms)
+                     0.988 R²   (0.964 R² .. 1.000 R²)
+mean                 188.3 ms   (179.7 ms .. 192.9 ms)
+std dev              13.31 ms   (9.046 ms .. 16.23 ms)
+variance introduced by outliers: 15% (moderately inflated)
+
 benchmarking main/scan/par/1024/LDFUBVecPLPar
-time                 171.4 ms   (159.3 ms .. 192.6 ms)
-                     0.983 R²   (0.959 R² .. 1.000 R²)
-mean                 191.9 ms   (183.0 ms .. 198.7 ms)
-std dev              13.42 ms   (7.814 ms .. 17.33 ms)
+time                 165.4 ms   (133.5 ms .. 198.8 ms)
+                     0.982 R²   (0.963 R² .. 1.000 R²)
+mean                 186.3 ms   (174.8 ms .. 192.9 ms)
+std dev              12.89 ms   (9.258 ms .. 14.17 ms)
 variance introduced by outliers: 15% (moderately inflated)
 
 benchmarking main/scan/par/2048/LDFUBVecPLPar
-time                 196.0 ms   (187.9 ms .. 210.5 ms)
-                     0.997 R²   (0.991 R² .. 1.000 R²)
-mean                 165.3 ms   (151.9 ms .. 174.3 ms)
-std dev              19.56 ms   (10.60 ms .. 22.73 ms)
-variance introduced by outliers: 31% (moderately inflated)
+time                 183.1 ms   (172.4 ms .. 189.5 ms)
+                     0.994 R²   (0.987 R² .. 1.000 R²)
+mean                 160.9 ms   (146.6 ms .. 169.8 ms)
+std dev              20.63 ms   (5.840 ms .. 28.87 ms)
+variance introduced by outliers: 40% (moderately inflated)
 
 benchmarking main/scan/par/4096/LDFUBVecPLPar
-time                 191.0 ms   (183.8 ms .. 211.1 ms)
-                     0.993 R²   (0.972 R² .. 1.000 R²)
-mean                 161.0 ms   (148.1 ms .. 173.8 ms)
-std dev              23.93 ms   (6.802 ms .. 33.15 ms)
-variance introduced by outliers: 47% (moderately inflated)
+time                 190.9 ms   (183.9 ms .. 197.4 ms)
+                     0.989 R²   (0.974 R² .. 1.000 R²)
+mean                 160.4 ms   (148.3 ms .. 171.1 ms)
+std dev              22.41 ms   (16.15 ms .. 29.62 ms)
+variance introduced by outliers: 41% (moderately inflated)
 
 benchmarking main/scan/par/8192/LDFUBVecPLPar
-time                 180.9 ms   (157.8 ms .. 244.5 ms)
-                     0.978 R²   (0.958 R² .. 0.998 R²)
-mean                 165.2 ms   (152.2 ms .. 171.6 ms)
-std dev              24.14 ms   (6.893 ms .. 33.13 ms)
+time                 185.0 ms   (168.1 ms .. 197.0 ms)
+                     0.996 R²   (0.988 R² .. 1.000 R²)
+mean                 161.5 ms   (145.1 ms .. 172.3 ms)
+std dev              21.28 ms   (4.371 ms .. 29.02 ms)
 variance introduced by outliers: 32% (moderately inflated)
 ```
 
