@@ -7,7 +7,7 @@ import Utils
   , generateUVec
   )
 
-import Criterion.Main (bench, bgroup, defaultMain, env, nf)
+import Criterion.Main (bench, bgroup, env, nf, defaultConfig, defaultMainWith)
 
 import Control.DeepSeq (force)
 
@@ -26,6 +26,12 @@ import Scan
 import Sort (defaultSort, parBatcherMergeSort)
 
 import qualified Data.Vector.Unboxed as V
+import Criterion.Types (Config, resamples)
+
+baseConfig :: Config
+baseConfig = defaultConfig {
+            resamples = 20
+        }
 
 setUpEnv :: IO (V.Vector Int, [Int], V.Vector Int, [Int])
 setUpEnv = do
@@ -37,7 +43,7 @@ setUpEnv = do
 
 main :: IO ()
 main =
-  defaultMain
+  defaultMainWith baseConfig
     [ env setUpEnv $ \ ~(scanInpUV, scanInpL, sortInpUV, sortInpL) ->
         bgroup
           "main"
