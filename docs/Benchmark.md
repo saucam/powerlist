@@ -250,7 +250,7 @@ Chunk size around 1024 performs best in general.
 
 A lot of sparks are generated:
 
-![](SPSUBVecPLPar20CS1024)
+![](SPSUBVecPLPar20CS1024.png)
 
 ### LDFUBVecPLPar (LDFPar using Unboxed Vector)
 
@@ -405,3 +405,7 @@ mean                 1.695 s    (1.679 s .. 1.706 s)
 std dev              15.66 ms   (6.156 ms .. 21.71 ms)
 variance introduced by outliers: 19% (moderately inflated)
 ```
+
+Threadscope looks balanced, with quite some load.
+
+![](BATCHER20.png)
