@@ -24,7 +24,7 @@ The output from the algorithms is the sum of the prefix sum array. This is to ma
 |----|-----------|----------|----------|---------|--------------|---------------|
 |LDFPar||2^20|100|8|0.644|[LDFPar20CS100.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFPar20CS100.eventlog)|
 |LDFUBVecPLPar||2^20|1024|8|0.165||
-|LDFChunkUBVecPLPar|2^20|2^10|8|97.76||
+|LDFChunkUBVecPLPar|Hybrid approach between Bleloch and LDFUBVecPLPar|2^20|2^10|8|97.76||
 
 ### Sort
 
