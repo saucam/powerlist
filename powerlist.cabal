@@ -52,7 +52,7 @@ executable powerlist-bench
       Paths_powerlist
   hs-source-dirs:
       bench
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N8 -eventlog -O2 -Wall
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N1 -eventlog -O2 -Wall
   build-depends:
       base >=4.7 && <5
     , criterion

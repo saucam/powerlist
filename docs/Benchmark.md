@@ -7,16 +7,24 @@ Benchmarks have been executed using [criterion](https://hackage.haskell.org/pack
 
 The output from the algorithms is the sum of the prefix sum array. This is to make sure everything was computed as expected.
 
-## Scan
+## Results Summary
 
-## Results Table
+### Scan SPS
+
 |Algo|Description|Array Size|Chunk Size|Num Cores|Time taken (s)|Threadscope Log|
 |----|-----------|----------|----------|---------|--------------|---------------|
 |[SPSPL](#sps-sequential-scan-using-powerlist)|Sequential scan using powerlist|2^20|-|1|5.232|-|
 |[SPSPLPar1](#spspl-parallel-scan-using-powerlist-v1)|Parallel scan using powerlist|2^20|-|8|1.506|[SPSPLPar120.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSPLPar120.eventlog)|
 |LDFPar|2^20|100|8|0.644|[LDFPar20CS100.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFPar20CS100.eventlog)|
 
+### Scan LDF
+
+### Sort BATCHER
+
+
 Check below for more details.
+
+## Scan
 
 ### SPSPL (Sequential Scan using powerlist)
 
@@ -357,3 +365,31 @@ The chunked approach with chunk size 10 works excellent!
 The merging at the end is sequential otherwise it could have been even better.
 
 ![](LDFChunkUBVecPLPar20CS10.png)
+
+## Sort
+
+### BATCHER
+
+We list the results of batcher sort, first by running on single core, then on 8 cores
+
+1 core
+```
+$ stack exec powerlist-bench -- main/sort/BATCHER
+benchmarking main/sort/BATCHER
+time                 3.929 s    (3.661 s .. 4.113 s)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 3.863 s    (3.793 s .. 3.910 s)
+std dev              71.95 ms   (35.52 ms .. 101.1 ms)
+variance introduced by outliers: 19% (moderately inflated)
+```
+
+8 cores
+```
+$ stack exec powerlist-bench -- main/sort/BATCHER --output BATCHER.html +RTS -N8
+benchmarking main/sort/BATCHER
+time                 1.721 s    (1.654 s .. NaN s)
+                     1.000 R²   (NaN R² .. 1.000 R²)
+mean                 1.695 s    (1.679 s .. 1.706 s)
+std dev              15.66 ms   (6.156 ms .. 21.71 ms)
+variance introduced by outliers: 19% (moderately inflated)
+```

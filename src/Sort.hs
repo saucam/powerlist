@@ -52,7 +52,7 @@ batcherMerge x y = P.minMaxZip rv su
 --------------------------------------------------------------------------------
 parBatcherMergeSort :: (NFData a, Ord a, V.Unbox a) => Int -> P.PowerList a -> P.PowerList a
 parBatcherMergeSort _ l | V.length l <= 1 = l
-parBatcherMergeSort d  l | d > 5 = runEval(do
+parBatcherMergeSort d  l | d > 10 = runEval(do
     p <- rpar $ P.filterOdd l
     q <- rpar $ P.filterEven l
     _ <- rseq p
@@ -66,7 +66,7 @@ parBatcherMerge :: (Ord a, V.Unbox a) => Int -> P.PowerList a -> P.PowerList a -
 --batcherMerge strategy d cs x y | V.length x == 1 = rseq $ V.fromList [hx `min` hy, hx `max` hy]
 --    where hx = V.head x
 --          hy = V.head y
-parBatcherMerge d x y | d > 6 = do
+parBatcherMerge d x y | d > 10 = do
     r <- rseq $ P.filterOdd x
     v <- rseq $ P.filterEven y
     rv <- parBatcherMerge (d-1) r v
