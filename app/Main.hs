@@ -1,15 +1,36 @@
 module Main where
 
 import CLParser
+  ( Command(Scan, Sort)
+  , Opts(Opts)
+  , ScanAlgo(LDF, LDFChunkUBVecPLPar, LDFPar, LDFUBVecPLPar, SPS,
+         SPSPL, SPSPLPar1, SPSPLPar2, SPSPLPar3, SPSUBVecPLPar)
+  , SortAlgo(BATCHER, DEFAULT)
+  , parseArgs
+  )
 import Scan
-import Sort
+  ( ldf
+  , parSps1
+  , runParLdf
+  , runParLdfChunkUBVec
+  , runParLdfUBVec
+  , runParScan2
+  , runParScan3
+  , runParSpsUBVec
+  , runScan
+  , sequentialSPS
+  , sps
+  )
+import Sort (runBatcherSort, runDefaultSort)
 
 main :: IO ()
 main = run =<< parseArgs
 
 run :: Opts -> IO ()
-run opts = case opts of
+run opts =
+  case opts
     -- Run parallel prefix sum with powerlist
+        of
     Opts (Scan SPSPLPar1 n _) -> putStrLn $ runScan parSps1 n
     Opts (Scan SPSPLPar2 n c) -> putStrLn $ runParScan2 c n
     Opts (Scan SPSPLPar3 n c) -> putStrLn $ runParScan3 c n

@@ -13,8 +13,8 @@ zip :: PowerList a -> PowerList a -> PowerList a
 {-# INLINE zip #-}
 zip [] [] = []
 zip xs ys = Prelude.zip xs ys >>= \(a, b) -> [a, b]
---zip _ _ = error "Non similar powerlists"
 
+--zip _ _ = error "Non similar powerlists"
 parZip :: Strategy a -> Int -> PowerList a -> PowerList a -> PowerList a
 {-# INLINE parZip #-}
 parZip strategy cs as bs = Powerlist.zip as bs `using` parListChunk cs strategy
@@ -25,10 +25,20 @@ zipWith = Prelude.zipWith
 
 parZipWith :: Num a => Strategy a -> Int -> (a -> a -> a) -> [a] -> [a] -> [a]
 {-# INLINE parZipWith #-}
-parZipWith strategy cs z as bs = Powerlist.zipWith z as bs `using` parListChunk cs strategy
+parZipWith strategy cs z as bs =
+  Powerlist.zipWith z as bs `using` parListChunk cs strategy
 
 unzip :: PowerList a -> (PowerList a, PowerList a)
-unzip = snd . foldr (\x (b, (xs, ys)) -> (not b, if b then (x:xs, ys) else (xs, x:ys))) (False, ([], []))
+unzip =
+  snd .
+  foldr
+    (\x (b, (xs, ys)) ->
+       ( not b
+       , if b
+           then (x : xs, ys)
+           else (xs, x : ys)))
+    (False, ([], []))
+
 {-
 unzip = Prelude.unzip . splt
   where splt []       = []

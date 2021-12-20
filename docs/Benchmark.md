@@ -15,12 +15,17 @@ The output from the algorithms is the sum of the prefix sum array. This is to ma
 |----|-----------|----------|----------|---------|--------------|---------------|
 |[SPSPL](#sps-sequential-scan-using-powerlist)|Sequential scan using powerlist|2^20|-|1|5.232|-|
 |[SPSPLPar1](#spspl-parallel-scan-using-powerlist-v1)|Parallel scan using powerlist|2^20|-|8|1.506|[SPSPLPar120.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSPLPar120.eventlog)|
-|LDFPar|2^20|100|8|0.644|[LDFPar20CS100.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFPar20CS100.eventlog)|
+|SPSUBVecPLPar|2^20|128|8|0.555||-|
+
+
 
 ### Scan LDF
 
-### Sort BATCHER
+|Algo|Description|Array Size|Chunk Size|Num Cores|Time taken (s)|Threadscope Log|
+|----|-----------|----------|----------|---------|--------------|---------------|
+|LDFPar|2^20|100|8|0.644|[LDFPar20CS100.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFPar20CS100.eventlog)|
 
+### Sort BATCHER
 
 Check below for more details.
 
@@ -183,58 +188,58 @@ Load seems to be distributed evenly. There are GC pauses as expected as many int
 Significant improvement over ```SPSPLPar3```. We try several chunk sizes
 
 ```
-$ stack exec powerlist-bench -- --match pattern SPSUBVecPLPar +RTS -N8
+$ stack exec powerlist-bench -- --match pattern SPSUBVecPLPar --output SPSUBVecPLPar.html +RTS -N8 
 benchmarking main/scan/par/128/SPSUBVecPLPar
-time                 544.7 ms   (416.3 ms .. 617.0 ms)
-                     0.993 R²   (0.986 R² .. 1.000 R²)
-mean                 554.4 ms   (540.3 ms .. 575.4 ms)
-std dev              24.59 ms   (21.84 ms .. 26.68 ms)
+time                 555.9 ms   (396.1 ms .. 671.2 ms)
+                     0.988 R²   (0.981 R² .. 1.000 R²)
+mean                 584.6 ms   (556.0 ms .. 611.6 ms)
+std dev              31.47 ms   (24.93 ms .. 35.64 ms)
 variance introduced by outliers: 19% (moderately inflated)
 
 benchmarking main/scan/par/256/SPSUBVecPLPar
-time                 660.6 ms   (649.6 ms .. 687.4 ms)
-                     1.000 R²   (0.999 R² .. 1.000 R²)
-mean                 617.2 ms   (589.9 ms .. 632.7 ms)
-std dev              26.49 ms   (11.16 ms .. 32.08 ms)
+time                 656.2 ms   (571.7 ms .. 808.6 ms)
+                     0.993 R²   (NaN R² .. 1.000 R²)
+mean                 599.8 ms   (581.8 ms .. 629.6 ms)
+std dev              29.30 ms   (258.7 μs .. 36.73 ms)
 variance introduced by outliers: 19% (moderately inflated)
 
 benchmarking main/scan/par/512/SPSUBVecPLPar
-time                 613.9 ms   (NaN s .. 676.3 ms)
-                     0.999 R²   (0.998 R² .. 1.000 R²)
-mean                 595.6 ms   (590.1 ms .. 605.0 ms)
-std dev              10.94 ms   (4.638 ms .. 13.96 ms)
+time                 575.2 ms   (489.1 ms .. 641.3 ms)
+                     0.997 R²   (0.995 R² .. 1.000 R²)
+mean                 579.0 ms   (556.7 ms .. 601.2 ms)
+std dev              24.48 ms   (14.85 ms .. 34.61 ms)
 variance introduced by outliers: 19% (moderately inflated)
 
 benchmarking main/scan/par/1024/SPSUBVecPLPar
-time                 565.5 ms   (556.4 ms .. 569.2 ms)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 563.1 ms   (561.4 ms .. 563.6 ms)
-std dev              2.800 ms   (133.2 μs .. 3.358 ms)
-variance introduced by outliers: 19% (moderately inflated)
+time                 593.0 ms   (545.6 ms .. 632.9 ms)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 544.9 ms   (506.8 ms .. 565.1 ms)
+std dev              36.88 ms   (2.673 ms .. 46.73 ms)
+variance introduced by outliers: 20% (moderately inflated)
 
 benchmarking main/scan/par/2048/SPSUBVecPLPar
-time                 592.2 ms   (487.0 ms .. 691.2 ms)
-                     0.996 R²   (0.985 R² .. 1.000 R²)
-mean                 567.6 ms   (541.7 ms .. 589.3 ms)
-std dev              36.74 ms   (18.59 ms .. 41.84 ms)
-variance introduced by outliers: 19% (moderately inflated)
+time                 615.7 ms   (473.1 ms .. 722.3 ms)
+                     0.994 R²   (0.979 R² .. 1.000 R²)
+mean                 540.6 ms   (471.2 ms .. 575.1 ms)
+std dev              65.53 ms   (564.0 μs .. 80.36 ms)
+variance introduced by outliers: 23% (moderately inflated)
 
 benchmarking main/scan/par/4096/SPSUBVecPLPar
-time                 600.6 ms   (549.2 ms .. 730.3 ms)
-                     0.994 R²   (0.978 R² .. 1.000 R²)
-mean                 562.1 ms   (540.8 ms .. 584.7 ms)
-std dev              30.56 ms   (20.07 ms .. 35.13 ms)
+time                 587.5 ms   (496.9 ms .. 656.5 ms)
+                     0.997 R²   (0.995 R² .. 1.000 R²)
+mean                 558.9 ms   (532.5 ms .. 575.0 ms)
+std dev              26.70 ms   (13.31 ms .. 37.13 ms)
 variance introduced by outliers: 19% (moderately inflated)
 
 benchmarking main/scan/par/8192/SPSUBVecPLPar
-time                 571.9 ms   (556.4 ms .. 608.7 ms)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 555.3 ms   (527.6 ms .. 565.3 ms)
-std dev              18.66 ms   (2.643 ms .. 20.32 ms)
+time                 622.8 ms   (526.8 ms .. 741.5 ms)
+                     0.996 R²   (0.986 R² .. 1.000 R²)
+mean                 568.3 ms   (534.9 ms .. 592.8 ms)
+std dev              33.71 ms   (18.60 ms .. 46.49 ms)
 variance introduced by outliers: 19% (moderately inflated)
 ```
 
-Chunk size 128 and 8192 seem to be similar in performance!
+Chunk size 128 performs best
 
 A lot of sparks are generated:
 
