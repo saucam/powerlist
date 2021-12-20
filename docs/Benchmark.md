@@ -15,17 +15,23 @@ The output from the algorithms is the sum of the prefix sum array. This is to ma
 |----|-----------|----------|----------|---------|--------------|---------------|
 |[SPSPL](#sps-sequential-scan-using-powerlist)|Sequential scan using powerlist|2^20|-|1|5.232|-|
 |[SPSPLPar1](#spspl-parallel-scan-using-powerlist-v1)|Parallel scan using powerlist|2^20|-|8|1.506|[SPSPLPar120.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSPLPar120.eventlog)|
-|[SPSUBVecPLPar](#spsubvecplpar)|2^20|1024|8|0.520||
+|[SPSUBVecPLPar](#spsubvecplpar)||2^20|1024|8|0.520||
 
 
 ### Scan LDF
 
 |Algo|Description|Array Size|Chunk Size|Num Cores|Time taken (s)|Threadscope Log|
 |----|-----------|----------|----------|---------|--------------|---------------|
-|LDFPar|2^20|100|8|0.644|[LDFPar20CS100.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFPar20CS100.eventlog)|
-|LDFUBVecPLPar|2^20|1024|8|0.165||
+|LDFPar||2^20|100|8|0.644|[LDFPar20CS100.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFPar20CS100.eventlog)|
+|LDFUBVecPLPar||2^20|1024|8|0.165||
+|LDFChunkUBVecPLPar|2^20|2^10|8|97.76||
 
-### Sort BATCHER
+### Sort
+
+|Algo|Description|Array Size|Num Cores|Time taken (s)|Threadscope Log|
+|----|-----------|----------|---------|--------------|---------------|
+|BATCHER|The sequential batcher merge sort|2^20|1|3.929||
+|BATCHER|Parallel batcher merge sort|2^20|8|1.721|
 
 Check below for more details.
 
@@ -315,55 +321,55 @@ The chunk size here actually is the splitting of input vector itself and not spl
 We try several chunk sizes from 4 till 10
 
 ```
-$ stack exec powerlist-bench -- --match pattern LDFChunkUBVecPLPar --output LDFChunkUBVecPLPar.html +RTS -N8
+$ stack exec powerlist-bench -- --match pattern LDFChunkUBVecPLPar --output LDFChunkUBVecPLPar.html +RTS -N8 
 benchmarking main/scan/par/4/LDFChunkUBVecPLPar
-time                 412.2 ms   (395.6 ms .. 452.2 ms)
-                     0.999 R²   (0.998 R² .. 1.000 R²)
-mean                 393.8 ms   (373.6 ms .. 403.4 ms)
-std dev              20.10 ms   (3.515 ms .. 23.90 ms)
+time                 422.3 ms   (413.3 ms .. 439.6 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 399.7 ms   (389.1 ms .. 408.1 ms)
+std dev              18.44 ms   (422.5 μs .. 22.25 ms)
 variance introduced by outliers: 19% (moderately inflated)
 
 benchmarking main/scan/par/5/LDFChunkUBVecPLPar
-time                 394.1 ms   (315.2 ms .. 438.9 ms)
-                     0.984 R²   (0.966 R² .. 1.000 R²)
-mean                 361.3 ms   (347.9 ms .. 382.3 ms)
-std dev              21.38 ms   (7.251 ms .. 25.15 ms)
-variance introduced by outliers: 19% (moderately inflated)
+time                 394.3 ms   (352.7 ms .. 507.8 ms)
+                     0.981 R²   (0.934 R² .. 1.000 R²)
+mean                 361.3 ms   (336.0 ms .. 401.3 ms)
+std dev              44.59 ms   (32.90 ms .. 58.48 ms)
+variance introduced by outliers: 23% (moderately inflated)
 
 benchmarking main/scan/par/6/LDFChunkUBVecPLPar
-time                 288.8 ms   (139.8 ms .. 298.2 ms)
-                     0.984 R²   (0.867 R² .. 1.000 R²)
-mean                 284.1 ms   (264.3 ms .. 296.5 ms)
-std dev              20.78 ms   (19.25 ms .. 25.25 ms)
-variance introduced by outliers: 18% (moderately inflated)
+time                 356.9 ms   (344.4 ms .. 396.7 ms)
+                     0.995 R²   (0.986 R² .. 1.000 R²)
+mean                 303.9 ms   (267.6 ms .. 332.3 ms)
+std dev              43.36 ms   (13.99 ms .. 57.52 ms)
+variance introduced by outliers: 38% (moderately inflated)
 
 benchmarking main/scan/par/7/LDFChunkUBVecPLPar
-time                 290.0 ms   (252.0 ms .. 328.4 ms)
-                     0.985 R²   (0.912 R² .. 1.000 R²)
-mean                 307.4 ms   (299.2 ms .. 313.8 ms)
-std dev              15.95 ms   (15.22 ms .. 17.99 ms)
-variance introduced by outliers: 16% (moderately inflated)
+time                 229.3 ms   (-133.8 ms .. 487.6 ms)
+                     0.639 R²   (0.070 R² .. 1.000 R²)
+mean                 258.3 ms   (180.4 ms .. 311.2 ms)
+std dev              93.41 ms   (43.44 ms .. 121.7 ms)
+variance introduced by outliers: 78% (severely inflated)
 
 benchmarking main/scan/par/8/LDFChunkUBVecPLPar
-time                 98.87 ms   (92.33 ms .. 103.0 ms)
-                     0.991 R²   (0.982 R² .. 0.999 R²)
-mean                 94.89 ms   (88.24 ms .. 99.54 ms)
-std dev              7.788 ms   (6.904 ms .. 9.875 ms)
+time                 99.13 ms   (95.93 ms .. 104.0 ms)
+                     0.995 R²   (0.992 R² .. 0.998 R²)
+mean                 94.21 ms   (90.92 ms .. 98.43 ms)
+std dev              7.318 ms   (6.771 ms .. 8.525 ms)
 variance introduced by outliers: 21% (moderately inflated)
 
 benchmarking main/scan/par/9/LDFChunkUBVecPLPar
-time                 102.7 ms   (99.58 ms .. 105.2 ms)
-                     0.995 R²   (0.989 R² .. 0.999 R²)
-mean                 98.57 ms   (89.02 ms .. 101.7 ms)
-std dev              8.754 ms   (5.791 ms .. 13.96 ms)
-variance introduced by outliers: 21% (moderately inflated)
+time                 102.7 ms   (97.31 ms .. 118.5 ms)
+                     0.987 R²   (0.952 R² .. 1.000 R²)
+mean                 99.10 ms   (89.38 ms .. 104.5 ms)
+std dev              11.83 ms   (3.499 ms .. 13.54 ms)
+variance introduced by outliers: 32% (moderately inflated)
 
 benchmarking main/scan/par/10/LDFChunkUBVecPLPar
-time                 97.94 ms   (92.50 ms .. 101.6 ms)
-                     0.992 R²   (0.963 R² .. 1.000 R²)
-mean                 97.75 ms   (93.56 ms .. 100.5 ms)
-std dev              8.271 ms   (3.795 ms .. 9.735 ms)
-variance introduced by outliers: 21% (moderately inflated)
+time                 97.76 ms   (89.28 ms .. 105.1 ms)
+                     0.989 R²   (0.956 R² .. 0.994 R²)
+mean                 97.60 ms   (90.95 ms .. 103.2 ms)
+std dev              10.91 ms   (7.616 ms .. 16.09 ms)
+variance introduced by outliers: 32% (moderately inflated)
 ```
 
 The chunked approach with chunk size 10 works excellent!
