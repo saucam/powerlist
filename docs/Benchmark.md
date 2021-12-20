@@ -15,8 +15,7 @@ The output from the algorithms is the sum of the prefix sum array. This is to ma
 |----|-----------|----------|----------|---------|--------------|---------------|
 |[SPSPL](#sps-sequential-scan-using-powerlist)|Sequential scan using powerlist|2^20|-|1|5.232|-|
 |[SPSPLPar1](#spspl-parallel-scan-using-powerlist-v1)|Parallel scan using powerlist|2^20|-|8|1.506|[SPSPLPar120.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSPLPar120.eventlog)|
-|SPSUBVecPLPar|2^20|128|8|0.555||-|
-
+|[SPSUBVecPLPar](#spsubvecplpar)|2^20|2048|8|0.6157||
 
 
 ### Scan LDF
@@ -183,9 +182,10 @@ Sparks have reduced significantly as expected, and hence the better run time:
 
 Load seems to be distributed evenly. There are GC pauses as expected as many intermediate lists are generated.
 
-### SPSUBVecPLPar (SPSPLPar3 using Unboxed Vector, with additional improvements)
+### SPSUBVecPLPar
 
-Significant improvement over ```SPSPLPar3```. We try several chunk sizes
+This is variation of SPSPLPar3 using Unboxed Vector, with additional improvements
+Significant improvement over ```SPSPLPar3``` is seen. We try several chunk sizes
 
 ```
 $ stack exec powerlist-bench -- --match pattern SPSUBVecPLPar --output SPSUBVecPLPar.html +RTS -N8 
@@ -239,11 +239,11 @@ std dev              33.71 ms   (18.60 ms .. 46.49 ms)
 variance introduced by outliers: 19% (moderately inflated)
 ```
 
-Chunk size 128 performs best
+Chunk size around 2048 performs best in general.
 
 A lot of sparks are generated:
 
-![](SPSUBVecPLPar20CS128)
+![](SPSUBVecPLPar20CS2048)
 
 ### LDFUBVecPLPar (LDFPar using Unboxed Vector)
 
