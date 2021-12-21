@@ -5,7 +5,7 @@ license:             BSD3
 author:              "Yash Datta"
 maintainer:          "yd2590@columbia.edu"
 copyright:           "2021 Yash Datta"
-
+tested-with:         GHC == 8.8.4
 extra-source-files:
 - README.md
 - ChangeLog.md
