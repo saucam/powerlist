@@ -38,9 +38,18 @@ Prelude> scanl1 (+) [1, 2, 3, 4]
 
 Powerlist allow a simple prefix sum function:
 
+![](equations/sps.png)
 
 This translates beautifully into haskell code:
 
+```haskell
+sps :: Num a => (a -> a -> a) -> P.PowerList a -> P.PowerList a
+sps _ [] = []
+sps _ [x] = [x]
+sps op l = P.zip (sps op u) (sps op v)
+  where
+    (u, v) = P.unzip $ P.zipWith op (P.rsh 0 l) l
+```
 
 This sequential implementation is presented to show the usefulness of powerlists and to benchmark parallel algorithms.
 The powerlist implementation used for this and other algorithms is backed by ```List``` of haskell, for its simplicity and flexibility.
@@ -96,6 +105,7 @@ This version further improves the runtime by recursing only till a certain depth
 
 Another algorithm due to Ladner and Fischer can be implemented using powerlist as follows:
 
+![](equations/ldf.png)
 
 And here is the equivalent sequential implementation in haskell :
 
@@ -217,9 +227,11 @@ defaultSort = sort
 
 This is another application of powerlist where a simple sorting scheme is given by:
 
+![](equations/sort.png)
 
 where we could use the batcher merge function for merging the 2 sorted sub-lists:
 
+![](equations/bm.png)
 
 This again leads to this simple recursive sorting algorithm in haskell:
 
