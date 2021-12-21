@@ -26,8 +26,8 @@ zip xs ys =
     n = V.length xs + V.length ys
     write m i
       | i < n = do
-        M.unsafeWrite m i (xs V.! (i `div` 2))
-        M.unsafeWrite m (i + 1) (ys V.! (i `div` 2))
+        M.unsafeWrite m i (V.unsafeIndex xs (i `div` 2))
+        M.unsafeWrite m (i + 1) (V.unsafeIndex ys (i `div` 2))
         write m (i + 2)
       | otherwise = return ()
 
@@ -65,7 +65,7 @@ zipWith op xs ys =
     write m y i
       | i < k = do
         curr <- M.unsafeRead m i
-        M.unsafeWrite m i (op (y V.! i) curr)
+        M.unsafeWrite m i (op (V.unsafeIndex y i) curr)
         write m y (i + 1)
       | otherwise = return ()
 
@@ -104,7 +104,7 @@ filterUsing op l =
     n = nl `div` 2
     write m i
       | i < n = do
-        M.unsafeWrite m i (l V.! op i)
+        M.unsafeWrite m i (V.unsafeIndex l (op i))
         write m (i + 1)
       | otherwise = return ()
 
@@ -150,7 +150,7 @@ shiftAdd2 r l =
     go ind mv
       | ind > 0 = do
         curr <- M.unsafeRead mv ind
-        M.unsafeWrite mv ind ((r V.! (ind - 1)) + curr)
+        M.unsafeWrite mv ind (V.unsafeIndex r (ind - 1) + curr)
         go (ind - 1) mv
       | otherwise = return ()
 
@@ -164,7 +164,7 @@ addPairs l =
     n = V.length l `div` 2
     addPairs' mv i
       | i < n = do
-        M.unsafeWrite mv i (l V.! (2 * i) + (l V.! (2 * i + 1)))
+        M.unsafeWrite mv i (V.unsafeIndex l (2 * i) + V.unsafeIndex l (2 * i + 1))
         addPairs' mv (i + 1)
       | otherwise = return ()
 
@@ -178,8 +178,8 @@ minMaxZip xs ys =
     n = V.length xs + V.length ys
     write mv i
       | i < n = do
-        let p = xs V.! (i `div` 2)
-        let q = ys V.! (i `div` 2)
+        let p = V.unsafeIndex xs (i `div` 2)
+        let q = V.unsafeIndex ys (i `div` 2)
         M.unsafeWrite mv i (p `min` q)
         M.unsafeWrite mv (i + 1) (p `max` q)
         write mv (i + 2)
