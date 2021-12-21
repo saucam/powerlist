@@ -206,18 +206,29 @@ So for example to run simple prefix sum algorithm using powerlist on array of in
 
 ```
 stack exec powerlist-exe -- scan --algo SPSPL --size 5
+5984
 ```
 
 To run the parallel version of the same algorithm using powerlist, on 8 cores and generate eventlog file for threadscope analysis:
 
 ```
 stack exec powerlist-exe -- scan --algo SPSPLPar1 --size 20 +RTS -N8 -ls
+5984
 ```
 To run the more optimized parallel version, and supply (optional) chunk size for splitting methods like zip etc:
 
 ```
 stack exec powerlist-exe -- scan --algo SPSPLPar2 --size 20 --csize 256 +RTS -N8 -ls
+192154133857304576
 ```
+
+### Outputs
+
+The scan algorithm simply outputs the sum of the prefix sum input list/array. The input is generated as a simple list/vector of length ```2^d``` from 1 to ```2^d```.
+
+The sort algorithm simply outputs the last element of the sorted input list/array. The input is generated as a simple reverse list/vector of length ```2^d``` from ```2^d``` down to 1.
+
+Here ```d``` is the value of the supplied ```--size``` param.
 
 ### Benchmarks
 
