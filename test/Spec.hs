@@ -45,6 +45,9 @@ main = hspec $ do
         it "correctly calculates prefix sum" $ do
             Scan.parLdfChunkUBVec (+) 2 (generateUVec 8) `shouldBe` UV.fromList (scanl1 (+) [1..2^8])
 
+        it "correctly calculates prefix sum for large arrays" $ do
+            Scan.parLdfChunkUBVec (+) 10 (generateUVec 20) `shouldBe` UV.fromList (scanl1 (+) [1..2^20])
+
     describe "Sort.batcherMergeSort" $ do
         it "correctly sorts the input vector" $ do
             Sort.batcherMergeSort (generateReverseUVec 8) `shouldBe` UV.fromList [1..2^8]
