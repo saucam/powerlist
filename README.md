@@ -154,12 +154,19 @@ To build the executables, simply run
 
 ```
 stack build
-
 ```
 This builds 2 different executables:
 
 - ```powerlist-exe``` for executing and analyzing each of the different algorithms.
-- ```powerlist-benchmark`` for benchmarking each of the algorithm functions by executing them multiple times. This uses [criterion](https://hackage.haskell.org/package/criterion) package, hence all command line options of criterion can be used.
+- ```powerlist-benchmark``` for benchmarking each of the algorithm functions by executing them multiple times. This uses [criterion](https://hackage.haskell.org/package/criterion) package, hence all command line options of criterion can be used.
+
+### Running Tests
+
+To run the unit tests
+
+```
+stack test
+```
 
 ### Running
 
