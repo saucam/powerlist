@@ -15,6 +15,7 @@ The output from the algorithms is the sum of the prefix sum array. This is to ma
 |----|-----------|----------|----------|---------|--------------|---------------|
 |[SPSPL](#sps-sequential-scan-using-powerlist)|Sequential scan using powerlist|2^20|-|1|5.232|-|
 |[SPSPLPar1](#spspl-parallel-scan-using-powerlist-v1)|Parallel scan using powerlist|2^20|-|8|1.506|[SPSPLPar120.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSPLPar120.eventlog)|
+|[SPSPLPar2](#spsplpar2)||2^20|256|8|1.483||
 |[SPSUBVecPLPar](#spsubvecplpar)||2^20|1024|8|0.520||
 
 
@@ -83,30 +84,30 @@ variance introduced by outliers: 19% (moderately inflated)
 We benchmark at 3 different chunk size 128, 256, 512
 
 ```
-$ stack exec powerlist-bench -- --match pattern SPSPLPar2 +RTS -N8
+$ stack exec powerlist-bench -- --match pattern SPSPLPar2 --output SPSPLPar2.html +RTS -N8
 benchmarking main/scan/par/128/SPSPLPar2
-time                 1.635 s    (1.429 s .. 1.691 s)
-                     0.997 R²   (0.990 R² .. 1.000 R²)
-mean                 1.559 s    (1.529 s .. 1.622 s)
-std dev              49.62 ms   (29.51 ms .. 55.08 ms)
+time                 1.511 s    (1.449 s .. 1.616 s)
+                     0.996 R²   (0.986 R² .. 1.000 R²)
+mean                 1.549 s    (1.509 s .. 1.584 s)
+std dev              44.72 ms   (8.620 ms .. 50.51 ms)
 variance introduced by outliers: 19% (moderately inflated)
 
 benchmarking main/scan/par/256/SPSPLPar2
-time                 1.525 s    (1.486 s .. 1.625 s)
-                     0.999 R²   (0.996 R² .. 1.000 R²)
-mean                 1.549 s    (1.531 s .. 1.579 s)
-std dev              30.26 ms   (15.70 ms .. 34.72 ms)
+time                 1.483 s    (1.399 s .. 1.708 s)
+                     0.997 R²   (0.995 R² .. 1.000 R²)
+mean                 1.536 s    (1.508 s .. 1.563 s)
+std dev              50.67 ms   (3.115 ms .. 61.33 ms)
 variance introduced by outliers: 19% (moderately inflated)
 
 benchmarking main/scan/par/512/SPSPLPar2
-time                 1.542 s    (NaN s .. 1.665 s)
-                     0.999 R²   (0.996 R² .. 1.000 R²)
-mean                 1.557 s    (1.541 s .. 1.567 s)
-std dev              25.17 ms   (12.45 ms .. 28.79 ms)
-variance introduced by outliers: 19% (moderately inflated)
+time                 1.552 s    (1.490 s .. 1.697 s)
+                     0.994 R²   (0.977 R² .. 1.000 R²)
+mean                 1.602 s    (1.537 s .. 1.712 s)
+std dev              116.4 ms   (59.47 ms .. 162.7 ms)
+variance introduced by outliers: 20% (moderately inflated)
 ```
 
-Slightly worse than previous, most likely due to lot of sparks being created:
+Slightly better than previous, but still suffers from a lot of sparks being created:
 
 ![](SPSPLPar220CS256.png)
 
