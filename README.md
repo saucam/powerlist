@@ -216,6 +216,10 @@ stack exec powerlist-exe -- scan --algo SPSPLPar2 --size 20 --csize 256 +RTS -N8
 
 Find the [benchmarks here](docs/Benchmark.md)
 
+## Project Report
+
+View the complete [project report here](docs/project_report.pdf)
+
 ## References
 <a id="1">[1]</a>
 J. Misra, “Powerlist: A structure for parallel recursion,” ACM Trans. Program. Lang. Syst., vol. 16,
