@@ -55,7 +55,7 @@ rsh zero xs = zero : init xs
 It was quickly clear from experiments that powerlists implemented as list can only scale so much for algorithms like prefix sum, since the recursive nature of algorithm leads to too many intermediate list creation and GC cycles, that slow down the execution on large inputs.
 Hence, we resort to using Unboxed Vectors which are more memory friendly. We also use mutable vectors to further decrease memory usage.
 
-But the implementation of operation in terms of Vectors is a bit more involved:
+But the implementation of operators in terms of Vectors is a bit more involved:
 
 ```haskell
 type PowerList a = V.Vector a
@@ -232,4 +232,6 @@ View the complete [project report here](docs/project_report.pdf)
 J. Misra, “Powerlist: A structure for parallel recursion,” ACM Trans. Program. Lang. Syst., vol. 16,
 p. 1737–1767, nov 1994.
 
+<a id="2">[2]</a>
+G. E. Blelloch, “Prefix sums and their applications,” 1990.
 
