@@ -15,8 +15,9 @@ The output from the algorithms is the sum of the prefix sum array. This is to ma
 |----|-----------|----------|----------|---------|--------------|---------------|
 |[SPSPL](#sps-sequential-scan-using-powerlist)|Sequential scan using powerlist|2^20|-|1|5.232|-|
 |[SPSPLPar1](#spspl-parallel-scan-using-powerlist-v1)|Parallel scan using powerlist|2^20|-|8|1.506|[SPSPLPar120.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSPLPar120.eventlog)|
-|[SPSPLPar2](#spsplpar2)||2^20|256|8|1.483||
-|[SPSUBVecPLPar](#spsubvecplpar)||2^20|1024|8|0.520||
+|[SPSPLPar2](#spsplpar2)||2^20|256|8|1.483|[SPSPLPar220CS256.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSPLPar220CS256.eventlog)|
+|[SPSPLPar3](#spsplpar3)||2^20|256|8|1.397|[SPSPLPar320CS256.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSPLPar320CS256.eventlog)|
+|[SPSUBVecPLPar](#spsubvecplpar)||2^20|1024|8|0.520|[SPSUBVecPLPar20CS1024.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSUBVecPL20CS1024.eventlog)|
 
 
 ### Scan LDF
@@ -24,15 +25,15 @@ The output from the algorithms is the sum of the prefix sum array. This is to ma
 |Algo|Description|Array Size|Chunk Size|Num Cores|Time taken (s)|Threadscope Log|
 |----|-----------|----------|----------|---------|--------------|---------------|
 |LDFPar||2^20|100|8|0.644|[LDFPar20CS100.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFPar20CS100.eventlog)|
-|LDFUBVecPLPar||2^20|1024|8|0.165||
-|LDFChunkUBVecPLPar|Hybrid approach between Bleloch and LDFUBVecPLPar|2^20|2^10|8|97.76||
+|LDFUBVecPLPar||2^20|1024|8|0.165|[LDFUBVecPLPar20CS1024.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFUBVecPLPar20CS1024.eventlog)|
+|LDFChunkUBVecPLPar|Hybrid approach between Bleloch and LDFUBVecPLPar|2^20|2^10|8|97.76|[LDFChunkUBVecPLPar20CS10.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFChunkUBVecPLPar20CS10.eventlog)|
 
 ### Sort
 
 |Algo|Description|Array Size|Num Cores|Time taken (s)|Threadscope Log|
 |----|-----------|----------|---------|--------------|---------------|
 |BATCHER|The sequential batcher merge sort|2^20|1|3.929||
-|BATCHER|Parallel batcher merge sort|2^20|8|1.721|
+|BATCHER|Parallel batcher merge sort|2^20|8|1.721|[BATCHER20.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/BATCHER20.eventlog)|
 
 Check below for more details.
 
@@ -111,9 +112,8 @@ Slightly better than previous, but still suffers from a lot of sparks being crea
 
 ![](SPSPLPar220CS256.png)
 
-### SPSPLPar3 (Parallel Prefix sum using powerlist, introduce depth)
-
-Reduce the number of sparks by recursing till a certain depth.
+### SPSPLPar3
+This is another variation of SPSPLPar that reduces the number of sparks by recursing till a certain depth.
 
 ```
 $ stack exec powerlist-bench -- --match pattern SPSPLPar3 +RTS -N8
