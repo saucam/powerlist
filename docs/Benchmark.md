@@ -162,6 +162,7 @@ variance introduced by outliers: 19% (moderately inflated)
 Parallel version, further reduces the time, uses chunking for operations like ```zipWith```
 
 ```
+$ stack exec powerlist-bench -- --match pattern LDFPar +RTS -N8
 benchmarking main/scan/par/128/LDFPar
 time                 459.8 ms   (413.8 ms .. 614.0 ms)
                      0.977 R²   (0.917 R² .. 1.000 R²)
