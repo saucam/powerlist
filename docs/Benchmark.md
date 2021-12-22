@@ -17,15 +17,15 @@ The output from the algorithms is the sum of the prefix sum array. This is to ma
 |[SPSPLPar1](#spspl-parallel-scan-using-powerlist-v1)|Parallel scan using powerlist|2^20|-|8|1.506|[SPSPLPar120.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSPLPar120.eventlog)|
 |[SPSPLPar2](#spsplpar2)||2^20|256|8|1.483|[SPSPLPar220CS256.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSPLPar220CS256.eventlog)|
 |[SPSPLPar3](#spsplpar3)||2^20|256|8|1.397|[SPSPLPar320CS256.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSPLPar320CS256.eventlog)|
-|[SPSUBVecPLPar](#spsubvecplpar)||2^20|1024|8|0.520|[SPSUBVecPLPar20CS1024.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSUBVecPL20CS1024.eventlog)|
+|[SPSUBVecPLPar](#spsubvecplpar)|Parallel scan using Unboxed Vector powerlist|2^20|1024|8|0.520|[SPSUBVecPLPar20CS1024.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/SPSPar/SPSUBVecPL20CS1024.eventlog)|
 
 
 ### Scan LDF
 
 |Algo|Description|Array Size|Chunk Size|Num Cores|Time taken (s)|Threadscope Log|
 |----|-----------|----------|----------|---------|--------------|---------------|
-|LDFPar||2^20|100|8|0.644|[LDFPar20CS100.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFPar20CS100.eventlog)|
-|LDFUBVecPLPar||2^20|1024|8|0.165|[LDFUBVecPLPar20CS1024.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFUBVecPLPar20CS1024.eventlog)|
+|LDFPar|Parallel implementation of LDF scheme|2^20|100|8|0.644|[LDFPar20CS100.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFPar20CS100.eventlog)|
+|LDFUBVecPLPar|LDFPar using Unboxed Vector Powerlist|2^20|1024|8|0.165|[LDFUBVecPLPar20CS1024.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFUBVecPLPar20CS1024.eventlog)|
 |LDFChunkUBVecPLPar|Hybrid approach between Bleloch and LDFUBVecPLPar|2^20|2^10|8|97.76|[LDFChunkUBVecPLPar20CS10.eventlog](https://github.com/saucam/powerlist-threadscope/blob/main/LDFPar/LDFChunkUBVecPLPar20CS10.eventlog)|
 
 ### Sort
